@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Licytacje komornicze mieszkań – Małopolska</title>
+<meta name="description" content="Mieszkania z licytacji komorniczych w Małopolsce do 200 tys. zł – porównanie z rynkiem, kalkulator kosztów remontu i odsprzedaży, poradnik dla początkujących.">
+<style>
+:root {
+  --font-anthropic-sans: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-anthropic-serif: Georgia, "Times New Roman", serif;
+  --color-fg: #1f1e1c; --color-fg-muted: #6b6862; --color-bg: #ffffff; --color-panel: #faf9f7; --color-border-line: #e6e3de;
+  --color-ok: #2e7d4f; --color-warn: #a86a00; --color-bad: #c0392b;
+  --cds-text-secondary: #6b6862; --cds-border: #e6e3de; --cds-surface-popover: #ffffff; --cds-shadow-popover: 0 6px 24px rgba(0,0,0,.12);
+  --cds-chart-grid: #ece9e4; --cds-chart-axis: #b9b4ac; --cds-chart-reference: #57534e; --cds-chart-muted: #c9c4bc;
+  --s0: #2f6fdf; --s1: #d9822b; --s2: #8a5cd6; --s3: #2a9d8f; --s4: #d1495b; --s5: #6c8a1f; --s6: #b5651d; --s7: #5c6b7a;
+  --cds-radius: 10px; --cds-pad-xs: 4px; --cds-pad-sm: 8px; --cds-pad-md: 12px; --cds-pad-lg: 18px;
+  --cds-gap-xs: 4px; --cds-gap-sm: 8px; --cds-gap-md: 14px; --cds-gap-lg: 22px; --cds-gap-xl: 32px;
+  --cds-font-size-caption: 12.5px; --cds-font-size-body: 14.5px; --cds-font-size-heading: 17px; --cds-font-size-title: 28px;
+  --cds-font-weight-medium: 600; --cds-dur-slow: .3s;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-fg: #ecebe8; --color-fg-muted: #a6a39d; --color-bg: #1b1a18; --color-panel: #23221f; --color-border-line: #36342f;
+    --color-ok: #5cc28a; --color-warn: #e0a640; --color-bad: #ef6b5e;
+    --cds-text-secondary: #a6a39d; --cds-border: #3a3833; --cds-surface-popover: #2a2925; --cds-shadow-popover: 0 6px 24px rgba(0,0,0,.5);
+    --cds-chart-grid: #302e2a; --cds-chart-axis: #5b5850; --cds-chart-reference: #cfcac2; --cds-chart-muted: #5b5850;
+    --s0: #6aa1ff; --s1: #f0a35b; --s2: #b493f0; --s3: #4cc2b3; --s4: #f07a88; --s5: #a6c95a; --s6: #d99055; --s7: #97a7b6;
+  }
+}
+html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); line-height: 1.5; }
+#dash-root { max-width: 1180px; margin: 0 auto; padding: 24px 16px 48px; }
+.dash-skeleton { color: transparent !important; background: var(--color-border-line); border-radius: 6px; min-width: 4em; display: inline-block; animation: sk 1.2s ease-in-out infinite alternate; }
+@keyframes sk { from { opacity: .45; } to { opacity: .9; } }
+.lk-footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--color-border-line); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="dash-shim.js"></script>
+</head>
+<body>
+<div id="dash-root">
+<style>
+.lk { position: relative; font-family: var(--font-anthropic-sans); color: var(--color-fg); display: flex; flex-direction: column; gap: var(--cds-gap-lg); }
+.lk h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; }
+.lk h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+.lk h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: var(--cds-gap-lg) 0 0; }
+.lk p { margin: 0; }
+.lk .lead { color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); max-width: 60rem; }
+.lk .note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 var(--cds-gap-md); max-width: 60rem; }
+.lk-fresh { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-sm); }
+.lk-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--color-ok); margin-right: 6px; }
+.lk-dot.old { background: var(--color-warn); }
+
+.lk-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); }
+.lk-tabs button { font: inherit; font-size: var(--cds-font-size-body); background: transparent; color: var(--color-fg-muted); border: 0; border-bottom: 2px solid transparent; padding: var(--cds-pad-sm) var(--cds-pad-md); cursor: pointer; margin-bottom: -1px; }
+.lk-tabs button[aria-selected=true] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.lk-page { display: flex; flex-direction: column; gap: var(--cds-gap-lg); }
+.lk-page[hidden] { display: none; }
+
+.lk-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+.lk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: var(--cds-gap-md); }
+.lk-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+.lk-kpi .lbl { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-kpi .val { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; margin-top: var(--cds-gap-xs); }
+.lk-kpi .sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); }
+
+.lk-steps3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-md); counter-reset: s; }
+.lk-step3 { counter-increment: s; }
+.lk-step3 .n::before { content: counter(s); display: inline-flex; align-items: center; justify-content: center; width: 1.6rem; height: 1.6rem; border-radius: 50%; border: 1px solid var(--color-border-line); font-size: var(--cds-font-size-caption); margin-right: var(--cds-gap-sm); }
+.lk-step3 .n { display: flex; align-items: center; font-weight: var(--cds-font-weight-medium); }
+.lk-step3 p { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); }
+.lk-link { all: unset; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; color: var(--color-fg); font-size: var(--cds-font-size-caption); }
+.lk a { color: inherit; text-underline-offset: 2px; }
+
+.t { text-decoration: underline dotted; text-decoration-color: var(--color-fg-muted); text-underline-offset: 3px; cursor: help; }
+.t:focus-visible { outline: 2px solid var(--color-fg-muted); outline-offset: 2px; border-radius: 2px; }
+.lk-tipg { position: absolute; z-index: 20; max-width: min(22rem, calc(100% - 16px)); pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-sm) var(--cds-pad-md); font-size: var(--cds-font-size-caption); line-height: 1.45; color: var(--color-fg); }
+.lk-tipg b { display: block; margin-bottom: 2px; }
+.lk-tipg[hidden] { display: none; }
+
+.lk-badge { display: inline-flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); border: 1px solid currentColor; border-radius: 999px; padding: 1px var(--cds-pad-sm); white-space: nowrap; }
+.lk-badge::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; }
+.lk-badge.green { color: var(--color-ok); }
+.lk-badge.yellow { color: var(--color-warn); }
+.lk-badge.red { color: var(--color-bad); }
+.lk-tag { display: inline-block; font-size: var(--cds-font-size-caption); border: 1px solid var(--color-border-line); border-radius: 999px; padding: 0 var(--cds-pad-sm); margin: 2px var(--cds-gap-xs) 0 0; white-space: nowrap; }
+.lk-tag.new { color: var(--color-ok); border-color: currentColor; }
+.lk-tag.warn { color: var(--color-warn); border-color: currentColor; }
+.lk-tag.bad { color: var(--color-bad); border-color: currentColor; }
+
+.lk-tops { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--cds-gap-md); }
+.lk-top { display: flex; flex-direction: column; gap: var(--cds-gap-xs); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); background: var(--color-bg); }
+.lk-top .ttl { font-weight: var(--cds-font-weight-medium); }
+.lk-top .big { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; }
+.lk-top .row { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-top .row b { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+
+.lk-dates { display: flex; flex-direction: column; }
+.lk-date { display: grid; grid-template-columns: 6.5rem 1fr auto; gap: var(--cds-gap-md); align-items: baseline; padding: var(--cds-pad-sm) 0; border-bottom: 1px solid var(--color-border-line); font-size: var(--cds-font-size-body); }
+.lk-date .d { font-variant-numeric: tabular-nums; font-weight: var(--cds-font-weight-medium); }
+.lk-date .w { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); white-space: nowrap; }
+.lk-date .w.soon { color: var(--color-warn); }
+.lk-date .s { display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+
+.lk-alert { border-left: 3px solid var(--color-warn); padding: var(--cds-pad-sm) var(--cds-pad-md); font-size: var(--cds-font-size-caption); color: var(--color-fg); background: var(--color-bg); border-radius: 0 var(--cds-radius) var(--cds-radius) 0; }
+
+.lk-filters { display: flex; flex-wrap: wrap; gap: var(--cds-gap-md); align-items: flex-end; }
+.lk-filters label { display: flex; flex-direction: column; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-filters [hidden] { display: none; }
+.lk-in, .lk-filters input, .lk-filters select { font: inherit; font-size: var(--cds-font-size-body); color: var(--color-fg); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); width: 9.5rem; max-width: 100%; }
+.lk-filters .pair { display: flex; gap: var(--cds-gap-xs); }
+.lk-filters .pair input { width: 5.5rem; }
+.lk-filters input[type=range] { width: 11rem; padding: 0; border: 0; background: transparent; accent-color: var(--color-fg); }
+.lk-filters input[type=checkbox] { width: auto; }
+.lk-filters b { color: var(--color-fg); font-variant-numeric: tabular-nums; }
+.lk-check span { display: flex; align-items: center; gap: var(--cds-gap-xs); color: var(--color-fg); font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) 0; }
+.lk-btn { font: inherit; font-size: var(--cds-font-size-body); background: transparent; color: var(--color-fg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-md); cursor: pointer; }
+.lk-group { border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-md); margin-top: var(--cds-gap-md); }
+.lk-group > .gt { font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); margin-bottom: var(--cds-gap-sm); }
+
+.lk-tablecard { container-type: inline-size; }
+.lk-tablewrap { overflow: auto; max-height: 36rem; }
+.lk-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-body); font-variant-numeric: tabular-nums; }
+.lk-table th { position: sticky; top: 0; z-index: 1; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+.lk-table th button { all: unset; cursor: pointer; }
+.lk-table th.num, .lk-table td.num { text-align: right; }
+.lk-table td { padding: var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+.lk-table tbody tr { cursor: pointer; }
+.lk-table tbody tr:hover td { background: var(--color-bg); }
+.lk-table tbody tr.sel td { background: var(--color-bg); box-shadow: inset 0 1px 0 var(--color-fg-muted), inset 0 -1px 0 var(--color-fg-muted); }
+.lk-table td .small { display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-table.plain tbody tr { cursor: default; }
+.lk-pct { font-weight: var(--cds-font-weight-medium); }
+.lk-pct.good { color: var(--color-ok); }
+.lk-pct.bad { color: var(--color-bad); }
+@container (max-width: 44rem) { .lk-hide-narrow { display: none; } }
+
+.lk-detail-head { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-md); align-items: center; justify-content: space-between; }
+.lk-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); margin-top: var(--cds-gap-md); }
+.lk-fact .k { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-fact .v { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.lk-fact .s { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-flags { list-style: none; padding: 0; margin: var(--cds-gap-sm) 0 0; display: flex; flex-direction: column; gap: var(--cds-gap-sm); }
+.lk-flags li { display: grid; grid-template-columns: 1.2rem 1fr; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-body); }
+.lk-flags li .i { width: .6rem; height: .6rem; border-radius: 50%; margin-top: .4em; }
+.lk-flags li.red .i { background: var(--color-bad); }
+.lk-flags li.yellow .i { background: var(--color-warn); }
+.lk-flags li.info .i { background: var(--color-fg-muted); }
+.lk-flags li.green .i { background: var(--color-ok); }
+.lk-flags li .s { display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-todo { margin: var(--cds-gap-sm) 0 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-body); }
+.lk-links { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-md); margin-top: var(--cds-gap-sm); font-size: var(--cds-font-size-body); }
+
+.lk-chart, .lk-flip, .lk-wf { position: relative; min-height: 12rem; }
+.lk-tip { position: absolute; z-index: 5; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; }
+.lk-tip .d { color: var(--cds-text-secondary); }
+.lk-tip .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+.lk-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: var(--cds-gap-sm); }
+.lk-leg { display: inline-flex; align-items: center; gap: 6px; }
+.lk-leg i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.lk-leg i.line { width: 3px; height: 12px; }
+.lk-empty { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); padding: var(--cds-pad-md) 0; }
+.lk-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); min-height: 4rem; }
+.lk-fail::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+.lk-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: var(--cds-gap-sm) var(--cds-gap-md); margin-top: var(--cds-gap-md); }
+.lk-sum div { display: flex; flex-direction: column; gap: 2px; }
+.lk-sum .k { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-sum .v { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; }
+
+.lk-timeline { list-style: none; padding: 0; margin: var(--cds-gap-md) 0 0; counter-reset: k; }
+.lk-timeline li { counter-increment: k; position: relative; padding: 0 0 var(--cds-pad-lg) 2.6rem; }
+.lk-timeline li::before { content: counter(k); position: absolute; left: 0; top: 0; width: 1.8rem; height: 1.8rem; border-radius: 50%; border: 1px solid var(--color-border-line); background: var(--color-bg); display: flex; align-items: center; justify-content: center; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.lk-timeline li::after { content: ""; position: absolute; left: .9rem; top: 1.9rem; bottom: .2rem; width: 1px; background: var(--color-border-line); }
+.lk-timeline li:last-child::after { display: none; }
+.lk-timeline .h { font-weight: var(--cds-font-weight-medium); }
+.lk-timeline .meta { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: 2px; }
+.lk-timeline p { font-size: var(--cds-font-size-body); margin-top: var(--cds-gap-xs); max-width: 52rem; }
+.lk-timeline .warn { font-size: var(--cds-font-size-caption); color: var(--color-warn); margin-top: var(--cds-gap-xs); }
+.lk-checklist { list-style: none; padding: 0; margin: var(--cds-gap-sm) 0 0; display: flex; flex-direction: column; gap: var(--cds-gap-sm); }
+.lk-checklist label { display: grid; grid-template-columns: 1.4rem 1fr; gap: var(--cds-gap-xs); align-items: start; font-size: var(--cds-font-size-body); cursor: pointer; }
+.lk-checklist input { margin-top: .25em; }
+.lk-checklist .s { display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-progress { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-sm); }
+.lk-gloss { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-sm) var(--cds-gap-lg); margin-top: var(--cds-gap-md); }
+.lk-gloss div { border-bottom: 1px solid var(--color-border-line); padding-bottom: var(--cds-pad-sm); }
+.lk-gloss b { font-weight: var(--cds-font-weight-medium); }
+.lk-gloss p { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: 2px; }
+.lk-rel { display: inline-block; font-size: var(--cds-font-size-caption); border-radius: 999px; padding: 0 var(--cds-pad-sm); border: 1px solid currentColor; white-space: nowrap; }
+.lk-rel.hi { color: var(--color-ok); } .lk-rel.mid { color: var(--color-warn); } .lk-rel.lo { color: var(--color-bad); }
+.lk-hist { position: relative; min-height: 18rem; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+[data-dash-source-state=empty] { color: transparent; }
+</style>
+
+<div class="lk" id="dashboard">
+  <header id="naglowek">
+    <h1>Licytacje komornicze mieszkań – Małopolska</h1>
+    <p class="lead">Mieszkania z <span class="t" data-t="licytacja">licytacji komorniczych</span> w województwie małopolskim z <span class="t" data-t="cena_wywolania">ceną wywołania</span> do 200 000 zł – z porównaniem do rynku, kalkulatorem kosztów remontu i odsprzedaży oraz poradnikiem dla początkujących. Podkreślone słowa wyjaśniają się po najechaniu lub dotknięciu.</p>
+    <p class="lk-fresh" data-source="licytacje"><span class="lk-fresh-txt">—</span></p>
+  </header>
+
+  <nav class="lk-tabs" role="tablist" aria-label="Sekcje">
+    <button role="tab" data-tab="start" aria-selected="true">Start</button>
+    <button role="tab" data-tab="oferty" aria-selected="false">Oferty</button>
+    <button role="tab" data-tab="rynek" aria-selected="false">Na tle rynku</button>
+    <button role="tab" data-tab="kalkulator" aria-selected="false">Kalkulator zysku</button>
+    <button role="tab" data-tab="poradnik" aria-selected="false">Poradnik</button>
+  </nav>
+
+  <!-- START -->
+  <section class="lk-page" id="start">
+    <div class="lk-card" id="jak-zaczac">
+      <h2>Jak korzystać – trzy kroki</h2>
+      <div class="lk-steps3" style="margin-top: var(--cds-gap-md)">
+        <div class="lk-step3"><div class="n">Wybierz ofertę</div><p>W zakładce „Oferty” każde mieszkanie ma <span class="t" data-t="ocena">ocenę</span> i kartę z ryzykami. Zacznij od zielonych.</p><button class="lk-link" data-go="oferty">Przejdź do ofert →</button></div>
+        <div class="lk-step3"><div class="n">Policz, czy się opłaca</div><p>„Kalkulator zysku” pokaże wszystkie koszty i <span class="t" data-t="maks_cena">maksymalną cenę</span>, jaką warto zaoferować.</p><button class="lk-link" data-go="kalkulator">Otwórz kalkulator →</button></div>
+        <div class="lk-step3"><div class="n">Przygotuj się do licytacji</div><p>„Poradnik” prowadzi krok po kroku od <span class="t" data-t="obwieszczenie">obwieszczenia</span> do sprzedaży, z listą rzeczy do sprawdzenia przed wpłatą <span class="t" data-t="rekojmia">rękojmi</span>.</p><button class="lk-link" data-go="poradnik">Czytaj poradnik →</button></div>
+      </div>
+    </div>
+
+    <section class="lk-kpis" id="podsumowanie">
+      <div class="lk-card lk-kpi"><div class="lbl">Aktywne oferty</div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=liczba">—</div><div class="sub">mieszkania i <span class="t" data-t="udzial">udziały</span> do 200 tys. zł</div></div>
+      <div class="lk-card lk-kpi"><div class="lbl">Najtańsze <span class="t" data-t="calosc">całe mieszkanie</span></div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=min_cena_cale">—</div><div class="sub"><span class="t" data-t="cena_wywolania">cena wywołania</span></div></div>
+      <div class="lk-card lk-kpi"><div class="lbl">Najniższa <span class="t" data-t="zl_m2">cena za m²</span></div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=min_m2_cale">—</div><div class="sub">zł/m², całe mieszkania</div></div>
+      <div class="lk-card lk-kpi"><div class="lbl">Typowo <span class="t" data-t="vs_ofertowe">vs ceny ofertowe</span></div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=mediana_vs_ofertowa">—</div><div class="sub"><span class="t" data-t="mediana">mediana</span>, całe mieszkania</div></div>
+      <div class="lk-card lk-kpi"><div class="lbl">Najbliższa licytacja</div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=najblizszy">—</div><div class="sub"><span class="t" data-t="termin">data licytacji</span></div></div>
+    </section>
+
+    <div class="lk-card" id="warte-uwagi">
+      <h2>Oferty warte uwagi</h2>
+      <p class="note">Najlepsze wg <span class="t" data-t="ocena">oceny</span> i szacowanego <span class="t" data-t="zysk">zysku</span> przy założeniach z kalkulatora (domyślnie: średni remont, sprzedaż po <span class="t" data-t="cena_ofertowa">cenie ofertowej</span> z 5% upustem, z <span class="t" data-t="pit">PIT</span>).</p>
+      <div class="lk-tops" data-source="licytacje porownanie ceny_rynkowe koszty_stawki"></div>
+    </div>
+
+    <div class="lk-grid">
+      <div class="lk-card" id="terminy">
+        <h2>Najbliższe terminy</h2>
+        <p class="note">Najbliższe 60 dni. Najpierw mija <span class="t" data-t="termin_rekojmi">termin wpłaty rękojmi</span>, potem jest licytacja.</p>
+        <div class="lk-dates" data-source="licytacje"></div>
+      </div>
+      <div class="lk-card" id="zanim-zaczniesz">
+        <h2>Zanim zaczniesz</h2>
+        <p class="note">Rzeczy, które zaskakują początkujących najczęściej.</p>
+        <ul class="lk-flags">
+          <li class="yellow"><span class="i"></span><span>Potrzebujesz gotówki na całą cenę w ok. 2 tygodnie po <span class="t" data-t="przybicie">przybiciu</span>.<span class="s">Kredyt hipoteczny na licytację jest trudny do załatwienia w tak krótkim czasie.</span></span></li>
+          <li class="yellow"><span class="i"></span><span>W mieszkaniu może nadal mieszkać <span class="t" data-t="dluznik">dłużnik</span>.<span class="s">Jego wyprowadzenie (<span class="t" data-t="oproznienie">opróżnienie lokalu</span>) może trwać miesiące.</span></span></li>
+          <li class="yellow"><span class="i"></span><span>Często kupujesz bez obejrzenia wnętrza.<span class="s">Licz remont z zapasem i przeczytaj <span class="t" data-t="operat">operat szacunkowy</span>.</span></span></li>
+          <li class="yellow"><span class="i"></span><span>Sprzedaż przed upływem 5 lat to 19% <span class="t" data-t="pit">PIT</span> od dochodu.<span class="s">Zbieraj faktury za remont – zmniejszają podatek.</span></span></li>
+          <li class="info"><span class="i"></span><span>Ten dashboard to narzędzie do wstępnej selekcji, nie porada prawna ani podatkowa.<span class="s">Przed wpłatą rękojmi przeczytaj pełne obwieszczenie i sprawdź <span class="t" data-t="kw">księgę wieczystą</span>.</span></span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- OFERTY -->
+  <section class="lk-page" id="oferty" hidden>
+    <div class="lk-card" id="filtry">
+      <h2>Filtry</h2>
+      <p class="note">Zawężają tabelę, wykres rynku i kalkulator.</p>
+      <div class="lk-filters">
+        <label><span class="t" data-t="ocena">Ocena</span>
+          <select class="f-ocena"><option value="">Wszystkie</option><option value="green">Zielone</option><option value="greenyellow">Zielone i żółte</option></select>
+        </label>
+        <label>Typ
+          <select class="f-typ"><option value="">Wszystkie</option><option>Całe mieszkanie</option><option>Udział</option></select>
+        </label>
+        <label><span class="t" data-t="cena_wywolania">Cena wywołania</span> do (zł)
+          <input class="f-cena" type="number" min="0" step="1000" inputmode="numeric">
+        </label>
+        <label>Powierzchnia (m²)
+          <span class="pair"><input class="f-m2min" type="number" min="0" placeholder="od"><input class="f-m2max" type="number" min="0" placeholder="do"></span>
+        </label>
+        <label><span class="t" data-t="zl_m2">Cena za m²</span> do (zł)
+          <input class="f-zlm2" type="number" min="0" step="100" inputmode="numeric">
+        </label>
+        <label><span class="t" data-t="termin">Licytacja</span> od
+          <input class="f-od" type="date" min="2020-01-01" max="2099-12-31">
+        </label>
+        <label>do
+          <input class="f-do" type="date" min="2020-01-01" max="2099-12-31">
+        </label>
+        <button class="lk-btn f-reset" type="button">Wyczyść</button>
+      </div>
+    </div>
+
+    <div class="lk-card lk-tablecard" id="lista-ofert">
+      <h2>Oferty</h2>
+      <p class="note lk-count" data-source="licytacje">—</p>
+      <div class="lk-tablewrap">
+        <table class="lk-table lk-offers" data-source="licytacje" data-row-key="id">
+          <thead><tr>
+            <th data-field="miejscowosc"><button data-sort="miejscowosc">Mieszkanie</button></th>
+            <th data-field="cena" class="num"><button data-sort="cena"><span class="t" data-t="cena_wywolania">Cena wywołania</span></button></th>
+            <th data-field="m2" class="num"><button data-sort="m2">m²</button></th>
+            <th data-field="cena_m2" class="num lk-hide-narrow"><button data-sort="cena_m2"><span class="t" data-t="zl_m2">zł/m²</span></button></th>
+            <th data-source="porownanie" data-field="vs_ofertowa_pct" class="num"><button data-sort="vs_ofertowa_pct"><span class="t" data-t="vs_ofertowe">vs gmina</span></button></th>
+            <th data-source="podobne" data-field="vs_ogloszenia_pct" class="num"><button data-sort="vs_ogloszenia_pct"><span class="t" data-t="vs_ogloszenia">vs ogłoszenia</span></button></th>
+            <th data-field="termin"><button data-sort="termin"><span class="t" data-t="termin">Licytacja</span></button></th>
+            <th data-field="typ" class="lk-hide-narrow"><button data-sort="typ">Typ</button></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top: var(--cds-gap-sm)">Kliknij wiersz, żeby zobaczyć kartę oferty poniżej.</p>
+    </div>
+
+    <div class="lk-card" id="karta-oferty">
+      <div class="lk-detail" data-source="licytacje porownanie ceny_rynkowe koszty_stawki"></div>
+    </div>
+  </section>
+
+  <!-- RYNEK -->
+  <section class="lk-page" id="rynek" hidden>
+    <div class="lk-card" id="wykres-rynek">
+      <h2>Cena za m² na tle rynku</h2>
+      <p class="note">Słupek: <span class="t" data-t="zl_m2_calosc">cena wywołania za m² za całość</span>. Kreski: <span class="t" data-t="cena_ofertowa">cena ofertowa</span> w gminie, <span class="t" data-t="cena_transakcyjna">cena transakcyjna</span> w powiecie i <span class="t" data-t="podobne">mediana podobnych ogłoszeń</span>. Liczba po prawej to <span class="t" data-t="vs_ofertowe">różnica do cen ofertowych</span>. Im dłuższy odstęp między słupkiem a kreskami, tym większa zniżka.</p>
+      <div class="lk-legend lk-mkt-legend"></div>
+      <div class="lk-chart" data-source="licytacje porownanie ceny_rynkowe"></div>
+    </div>
+    <div class="lk-card lk-tablecard" id="aktualne-ogloszenia">
+      <h2>Na tle aktualnych ogłoszeń sprzedaży</h2>
+      <p class="note">Dla każdej oferty: <span class="t" data-t="mediana">mediana</span> ceny za m² <span class="t" data-t="podobne">podobnych ogłoszeń</span> – <span class="t" data-t="rynek_wtorny">rynek wtórny</span>, ta sama miejscowość, metraż ±30% (gdy jest ich mniej niż 3 – wszystkie z miejscowości). Szczegóły i linki do ogłoszeń w karcie oferty.</p>
+      <div class="lk-tablewrap">
+        <table class="lk-table plain lk-ogl" data-source="podobne" data-row-key="id">
+          <thead><tr>
+            <th>Mieszkanie</th>
+            <th class="num"><span class="t" data-t="zl_m2_calosc">Licytacja zł/m²</span></th>
+            <th data-field="og_mediana_m2" class="num"><span class="t" data-t="podobne">Ogłoszenia zł/m²</span></th>
+            <th data-field="vs_ogloszenia_pct" class="num"><span class="t" data-t="vs_ogloszenia">Różnica</span></th>
+            <th data-field="og_liczba" class="num">Ogłoszeń</th>
+            <th data-field="og_dopasowanie" class="lk-hide-narrow">Dopasowanie</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top: var(--cds-gap-sm)">Pominięte są nowe mieszkania od deweloperów – zawyżałyby porównanie. Ogłoszenia to ceny wywoławcze sprzedających, więc realna cena sprzedaży jest zwykle kilka procent niższa.</p>
+    </div>
+    <div class="lk-card lk-tablecard" id="ceny-rynkowe">
+      <h2>Ceny rynkowe w miejscowościach z ofert</h2>
+      <p class="note">Z tych liczb liczymy porównania i cenę sprzedaży w kalkulatorze. Kliknij źródło, żeby sprawdzić je samemu.</p>
+      <div class="lk-tablewrap">
+        <table class="lk-table plain lk-mkt" data-source="ceny_rynkowe" data-row-key="miejscowosc">
+          <thead><tr>
+            <th data-field="miejscowosc">Miejscowość</th>
+            <th data-field="ofertowa_m2" class="num"><span class="t" data-t="cena_ofertowa">Ofertowa</span> zł/m²</th>
+            <th data-field="ofertowa_zakres" class="lk-hide-narrow"><span class="t" data-t="gmina">Obszar</span></th>
+            <th data-field="transakcyjna_m2" class="num"><span class="t" data-t="cena_transakcyjna">Transakcyjna</span> zł/m²</th>
+            <th data-field="transakcyjna_zakres" class="lk-hide-narrow">Obszar</th>
+            <th data-field="transakcyjna_rok" class="num lk-hide-narrow">Rok</th>
+            <th data-field="ofertowa_url">Źródła</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top: var(--cds-gap-sm)">Uwaga: dla wsi (np. Osieczany) cena ofertowa dotyczy całej gminy razem z miastem, więc jest zawyżona. Ceny transakcyjne GUS za 2024 r. są najnowsze dostępne – dziś rynek jest zwykle droższy.</p>
+    </div>
+    <div class="lk-card" id="historia-cen">
+      <h2>Jak zmieniały się ceny – ostatnie 10 lat</h2>
+      <p class="note"><span class="t" data-t="mediana">Mediana</span> <span class="t" data-t="cena_transakcyjna">cen transakcyjnych</span> za m² na rynku wtórnym w powiatach z ofert, 2015–2024 (GUS; nowszych danych jeszcze nie ma). Przerywana linia to całe województwo – zawyża je Kraków. Najedź na wykres, żeby zobaczyć wartości w danym roku.</p>
+      <div class="lk-legend lk-hist-legend"></div>
+      <div class="lk-hist" data-source="historia_cen"></div>
+    </div>
+    <div class="lk-card lk-tablecard" id="trend-cen">
+      <h2>Trend w liczbach</h2>
+      <p class="note">Ile ceny urosły w 10 lat i w ostatnim roku. <span class="t" data-t="wiarygodnosc">Wiarygodność</span> zależy od <span class="t" data-t="transakcje">liczby transakcji</span> – przy kilkunastu sprzedażach rocznie jedna droga lub tania transakcja mocno zmienia medianę.</p>
+      <div class="lk-tablewrap">
+        <table class="lk-table plain lk-trend" data-source="trend_cen" data-row-key="powiat">
+          <thead><tr>
+            <th data-field="obszar">Obszar</th>
+            <th data-field="cena_2015" class="num lk-hide-narrow">2015 zł/m²</th>
+            <th data-field="cena_2024" class="num">2024 zł/m²</th>
+            <th data-field="wzrost_10l_pct" class="num"><span class="t" data-t="trend">Wzrost 2015–2024</span></th>
+            <th data-field="srednio_rocznie_pct" class="num"><span class="t" data-t="srednio_rocznie">Śr. rocznie</span></th>
+            <th data-field="zmiana_rr_pct" class="num lk-hide-narrow"><span class="t" data-t="zmiana_rr">Ostatni rok</span></th>
+            <th data-field="transakcje_2024" class="num lk-hide-narrow"><span class="t" data-t="transakcje">Transakcje 2024</span></th>
+            <th data-field="wiarygodnosc"><span class="t" data-t="wiarygodnosc">Wiarygodność</span></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="note" style="margin-top: var(--cds-gap-sm)">Przeszły wzrost nie gwarantuje przyszłego. Ceny w latach 2015–2018 stały w miejscu, a potem w ciągu 6 lat mniej więcej się podwoiły – rynek może też spowolnić lub spaść.</p>
+    </div>
+  </section>
+
+  <!-- KALKULATOR -->
+  <section class="lk-page" id="kalkulator" hidden>
+    <div class="lk-card" id="zalozenia">
+      <h2>Twoje założenia</h2>
+      <p class="note">Zakup za gotówkę, remont, czekanie na sprzedaż i sprzedaż po cenie rynkowej. Wszystkie wykresy i oceny na dashboardzie liczą się od tych ustawień. Kwoty nie zapisują się po zamknięciu.</p>
+      <div class="lk-group"><div class="gt">Zakup</div>
+        <div class="lk-filters">
+          <label><span class="t" data-t="przebicie">Przebicie ceny wywołania</span> (%)<input class="a-przeb" type="number" min="0" max="100" step="1" value="0"></label>
+          <label class="lk-check"><span><input class="a-pcc" type="checkbox" checked> <span class="t" data-t="pcc">PCC 2%</span></span></label>
+          <label class="lk-check"><span><input class="a-eksm" type="checkbox"> <span class="t" data-t="oproznienie">Opróżnienie lokalu przez komornika</span></span></label>
+        </div>
+      </div>
+      <div class="lk-group"><div class="gt"><span class="t" data-t="remont">Remont</span> i czekanie</div>
+        <div class="lk-filters">
+          <label>Remont liczony<select class="a-rmode"><option value="m2">Za m²</option><option value="kwota">Kwotą na mieszkanie</option></select></label>
+          <label class="a-rm2-wrap">Remont: <b class="a-remont-val">—</b> zł/m²<input class="a-remont" type="range" min="0" max="3500" step="100" value="1500"></label>
+          <label class="a-rkw-wrap" hidden>Remont na mieszkanie (zł)<input class="a-rkwota" type="number" min="0" step="1000" value="40000" inputmode="numeric"></label>
+          <label><span class="t" data-t="czas">Czas do sprzedaży</span> (mies.)<input class="a-mies" type="number" min="0" max="60" step="1" value="6"></label>
+          <label><span class="t" data-t="utrzymanie">Utrzymanie</span> (zł/m²/mies.)<input class="a-utrz" type="number" min="0" max="50" step="1" value="10"></label>
+        </div>
+      </div>
+      <div class="lk-group"><div class="gt">Sprzedaż</div>
+        <div class="lk-filters">
+          <label>Cena sprzedaży<select class="a-cena"><option value="ofertowa">Ofertowa (gmina)</option><option value="transakcyjna">Transakcyjna (powiat, GUS)</option><option value="ogloszenia">Podobne ogłoszenia (mediana)</option></select></label>
+          <label><span class="t" data-t="upust">Upust przy sprzedaży</span> (%)<input class="a-rabat" type="number" min="0" max="50" step="1" value="5"></label>
+          <label><span class="t" data-t="prowizja">Prowizja pośrednika</span> (% netto)<input class="a-prow" type="number" min="0" max="10" step="0.5" value="2.5"></label>
+          <label><span class="t" data-t="piec_lat">Kiedy sprzedajesz</span><select class="a-pit"><option value="1">Przed upływem 5 lat (PIT 19%)</option><option value="0">Po 5 latach (bez PIT)</option></select></label>
+          <label><span class="t" data-t="cel_roi">Docelowy zwrot</span> (%)<input class="a-cel" type="number" min="0" max="100" step="1" value="15"></label>
+          <button class="lk-btn a-reset" type="button">Przywróć domyślne</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="lk-card" id="koszty">
+      <h2>Na co idą pieniądze w każdej ofercie</h2>
+      <p class="note">Słupek to kolejne koszty, a na końcu <span class="t" data-t="zysk">zysk</span>. Pionowa kreska: ile dostaniesz ze sprzedaży. Po prawej zysk i <span class="t" data-t="roi">zwrot</span>. Kliknij słupek, żeby rozliczyć ofertę niżej. ✎ = własna kwota remontu.</p>
+      <div class="lk-legend lk-flip-legend"></div>
+      <div class="lk-flip" data-source="licytacje porownanie ceny_rynkowe koszty_stawki"></div>
+    </div>
+
+    <div class="lk-card lk-tablecard" id="maks-cena">
+      <h2>Ile maksymalnie licytować</h2>
+      <p class="note"><span class="t" data-t="maks_cena">Maksymalna cena</span>, przy której osiągniesz <span class="a-cel-txt">15%</span> <span class="t" data-t="roi">zwrotu</span> przy obecnych założeniach. Zapisz ją przed licytacją.</p>
+      <div class="lk-tablewrap lk-max" data-source="licytacje porownanie ceny_rynkowe koszty_stawki"></div>
+    </div>
+
+    <div class="lk-card" id="rozliczenie">
+      <h2>Rozliczenie jednej oferty</h2>
+      <p class="note">Od kwoty ze sprzedaży, przez wszystkie koszty, do zysku na czysto.</p>
+      <div class="lk-filters" style="margin-bottom: var(--cds-gap-sm)">
+        <label>Oferta<select class="a-oferta" style="width:auto;max-width:min(100%,26rem)"></select></label>
+        <label>Remont tego mieszkania (zł)<span class="pair"><input class="a-rflat" type="number" min="0" step="1000" inputmode="numeric" style="width:12rem"><button class="lk-btn a-rflat-clear" type="button" title="Wróć do ustawienia ogólnego">×</button></span></label>
+      </div>
+      <p class="note lk-rflat-note"></p>
+      <div class="lk-wf" data-source="licytacje porownanie ceny_rynkowe koszty_stawki"></div>
+      <div class="lk-sum lk-wf-sum"></div>
+      <p class="note" style="margin-top: var(--cds-gap-md)"><span class="t" data-t="pit">PIT</span> liczony jest od dochodu: cena sprzedaży minus prowizja i świadectwo, koszty zakupu i remont (zakładam faktury – <span class="t" data-t="naklady">udokumentowane nakłady</span>). Utrzymanie nie zmniejsza podatku. Przy <span class="t" data-t="udzial">udziale</span> wynik jest czysto teoretyczny – udziału zwykle nie sprzedasz po cenie rynkowej.</p>
+    </div>
+  </section>
+
+  <!-- PORADNIK -->
+  <section class="lk-page" id="poradnik" hidden>
+    <div class="lk-card" id="krok-po-kroku">
+      <h2>Od ogłoszenia do sprzedaży – krok po kroku</h2>
+      <p class="note">Cały proces trwa zwykle od 6 do 12 miesięcy. Czasy są orientacyjne – wszystko zależy od sądu i od tego, czy lokal jest pusty.</p>
+      <ol class="lk-timeline">
+        <li><div class="h">Znajdź ofertę i przeczytaj obwieszczenie</div><div class="meta">Najlepiej 3–4 tygodnie przed licytacją</div><p>W pełnym <span class="t" data-t="obwieszczenie">obwieszczeniu</span> jest numer <span class="t" data-t="kw">księgi wieczystej</span>, <span class="t" data-t="suma_oszacowania">suma oszacowania</span>, <span class="t" data-t="cena_wywolania">cena wywołania</span>, wysokość <span class="t" data-t="rekojmia">rękojmi</span>, terminy <span class="t" data-t="ogledziny">oględzin</span> i tryb licytacji. Linki w dashboardzie prowadzą do agregatorów – pełne obwieszczenie znajdziesz na licytacje.komornik.pl lub elicytacje.komornik.pl.</p></li>
+        <li><div class="h">Sprawdź księgę wieczystą</div><div class="meta">Za darmo, 15 minut – ekw.ms.gov.pl</div><p>Kto jest właścicielem, czy są <span class="t" data-t="hipoteka">hipoteki</span> (dział IV) i obciążenia (dział III). <span class="t" data-t="hipoteka">Hipoteki</span> po licytacji wygasają, ale <span class="t" data-t="sluzebnosc">służebność mieszkania</span> wpisana wcześniej może zostać.</p><p class="warn">Uwaga na: służebności, dożywocie, wzmianki o sprawach sądowych, udziały kilku właścicieli.</p></li>
+        <li><div class="h">Obejrzyj lokal i przeczytaj operat</div><div class="meta">W terminach oględzin z obwieszczenia</div><p>Jeśli się da – idź na <span class="t" data-t="ogledziny">oględziny</span>. W kancelarii komornika przejrzyj <span class="t" data-t="operat">operat szacunkowy</span> i protokół opisu. Zapytaj spółdzielnię lub wspólnotę o stan budynku, planowane remonty i kto mieszka w lokalu.</p></li>
+        <li><div class="h">Policz koszty i ustal maksymalną kwotę</div><div class="meta">Zakładka „Kalkulator zysku”</div><p>Ustaw realny remont i czas, sprawdź <span class="t" data-t="maks_cena">maksymalną cenę</span>. Dodaj 10–20% zapasu na niespodzianki. Na licytacji nie przekraczaj tej kwoty.</p></li>
+        <li><div class="h">Wpłać rękojmię</div><div class="meta">E-licytacja: najpóźniej 2 dni robocze przed startem · stacjonarna: termin w obwieszczeniu</div><p><span class="t" data-t="rekojmia">Rękojmia</span> to 1/10 sumy oszacowania. Przelew na konto wskazane w obwieszczeniu, w tytule sygnatura sprawy. Przy e-licytacji podajesz też PESEL, numer dowodu i stan cywilny. Jeśli przegrasz – rękojmia wraca.</p></li>
+        <li><div class="h">Licytuj</div><div class="meta"><span class="t" data-t="stacjonarna">Stacjonarna</span>: jeden dzień w sądzie · <span class="t" data-t="elicytacja">e-licytacja</span>: 7 dni online</div><p>Każda kolejna oferta musi być wyższa co najmniej o <span class="t" data-t="postapienie">postąpienie</span> (1% ceny wywołania). W licytacji nie mogą brać udziału m.in. dłużnik i jego najbliższa rodzina.</p></li>
+        <li><div class="h">Przybicie</div><div class="meta">Kilka tygodni na uprawomocnienie</div><p>Sąd udziela <span class="t" data-t="przybicie">przybicia</span> najwyższej ofercie. Od <span class="t" data-t="prawomocne">uprawomocnienia</span> biegnie termin na zapłatę.</p></li>
+        <li><div class="h">Zapłać resztę ceny</div><div class="meta">Zwykle 2 tygodnie (można prosić o przedłużenie do miesiąca)</div><p>Cena minus wpłacona rękojmia, na konto sądu/komornika. To moment, w którym musisz mieć gotówkę.</p><p class="warn">Brak zapłaty w terminie = przepada rękojmia.</p></li>
+        <li><div class="h">Przysądzenie własności</div><div class="meta">Kilka tygodni do kilku miesięcy</div><p>Sąd wydaje postanowienie o <span class="t" data-t="przysadzenie">przysądzeniu własności</span>. Po jego uprawomocnieniu jesteś właścicielem. Ewentualną deklarację <span class="t" data-t="pcc">PCC-3</span> składa się w 14 dni. Rok uprawomocnienia zapamiętaj – od niego liczy się <span class="t" data-t="piec_lat">5 lat dla PIT</span>.</p></li>
+        <li><div class="h">Wpis do księgi i przejęcie lokalu</div><div class="meta">Wpis: 200 zł · wydanie lokalu: od dni do wielu miesięcy</div><p>Złóż wniosek o <span class="t" data-t="wpis_kw">wpis do księgi wieczystej</span>. Jeśli dłużnik się nie wyprowadzi, postanowienie o przysądzeniu jest podstawą do <span class="t" data-t="oproznienie">opróżnienia lokalu</span> przez komornika.</p><p class="warn">Zimą (1 listopada–31 marca) eksmisje często są wstrzymane – uwzględnij to w czasie.</p></li>
+        <li><div class="h">Remont</div><div class="meta">1–3 miesiące</div><p>Zbieraj faktury VAT na swoje nazwisko – materiały i usługi. To <span class="t" data-t="naklady">udokumentowane nakłady</span>, które zmniejszą PIT przy sprzedaży.</p></li>
+        <li><div class="h">Sprzedaż i podatek</div><div class="meta">1–3 miesiące · PIT-39 do 30 kwietnia następnego roku</div><p>Potrzebne <span class="t" data-t="swiadectwo">świadectwo energetyczne</span>. Możesz sprzedawać sam lub przez biuro (<span class="t" data-t="prowizja">prowizja</span>). Sprzedaż przed upływem 5 lat = 19% <span class="t" data-t="pit">PIT</span> od dochodu.</p></li>
+      </ol>
+    </div>
+
+    <div class="lk-grid">
+      <div class="lk-card" id="lista-kontrolna">
+        <h2>Zanim wpłacisz rękojmię – lista kontrolna</h2>
+        <p class="note">Odhaczaj przy każdej ofercie. Jeśli czegoś nie możesz odhaczyć – zastanów się dwa razy. (Zaznaczenia nie zapisują się.)</p>
+        <ul class="lk-checklist">
+          <li><label><input type="checkbox"><span>Przeczytałem pełne obwieszczenie komornika<span class="s">Kwoty, terminy, tryb, numer KW, sygnatura sprawy.</span></span></label></li>
+          <li><label><input type="checkbox"><span>Sprawdziłem księgę wieczystą<span class="s">Właściciel, hipoteki, służebności, ostrzeżenia, udziały.</span></span></label></li>
+          <li><label><input type="checkbox"><span>Obejrzałem mieszkanie albo wiem, że nie będzie to możliwe<span class="s">I wliczyłem to w ryzyko (większy zapas na remont).</span></span></label></li>
+          <li><label><input type="checkbox"><span>Wiem, kto mieszka w lokalu<span class="s">Dłużnik, rodzina, najemcy? Czy wyprowadzą się sami?</span></span></label></li>
+          <li><label><input type="checkbox"><span>Przeczytałem operat szacunkowy<span class="s">W kancelarii komornika.</span></span></label></li>
+          <li><label><input type="checkbox"><span>Zapytałem spółdzielnię lub wspólnotę o budynek<span class="s">Planowane remonty, fundusz remontowy, problemy.</span></span></label></li>
+          <li><label><input type="checkbox"><span>Policzyłem koszty z zapasem 10–20%</span></label></li>
+          <li><label><input type="checkbox"><span>Mam gotówkę na całą cenę i koszty<span class="s">Do zapłaty ok. 2 tygodnie po uprawomocnieniu przybicia.</span></span></label></li>
+          <li><label><input type="checkbox"><span>Ustaliłem maksymalną kwotę i jej nie przekroczę</span></label></li>
+          <li><label><input type="checkbox"><span>Rozumiem PCC i PIT albo zapytałem doradcę podatkowego</span></label></li>
+        </ul>
+        <p class="lk-progress">0 z 10</p>
+      </div>
+
+      <div class="lk-card" id="zrodla">
+        <h2>Skąd są dane i na ile im ufać</h2>
+        <p class="note">Każda liczba na dashboardzie pochodzi z jednego z tych źródeł. Panel „Sources” obok pokazuje surowe dane.</p>
+        <table class="lk-table plain">
+          <tbody>
+            <tr><td><b>Oferty</b><span class="small">ListaPrzetargow.pl i Monitor Przetargów Adradar, sprawdzane codziennie ok. 6:52. Oficjalny portal komorników blokuje automatyczny odczyt, więc agregatory mogą coś pominąć.</span></td><td><span class="lk-rel mid">średnia</span></td></tr>
+            <tr><td><b>Ceny ofertowe</b><span class="small">RealAdvisor, średnia z ogłoszeń dla gminy, odświeżana co miesiąc. Różne portale podają różne średnie (dla Chrzanowa 5,8–8,3 tys. zł/m²) – wybrana jest najostrożniejsza.</span></td><td><span class="lk-rel mid">średnia</span></td></tr>
+            <tr><td><b>Ceny transakcyjne</b><span class="small">GUS (Bank Danych Lokalnych), mediana rzeczywistych transakcji dla powiatu. Wiarygodne, ale za 2024 r. i dla dużego obszaru.</span></td><td><span class="lk-rel hi">wysoka</span></td></tr>
+            <tr><td><b>Aktualne ogłoszenia</b><span class="small">Domiporta.pl i Nieruchomosci-online.pl, rynek wtórny, odświeżane co tydzień. Najlepiej pokazują, ile dziś chcą sprzedający za podobne mieszkania – ale w małych miejscowościach ogłoszeń jest mało lub wcale.</span></td><td><span class="lk-rel mid">średnia</span></td></tr>
+            <tr><td><b>Historia cen (10 lat)</b><span class="small">GUS, mediany transakcji z rynku wtórnego w powiatach, 2015–2024, wraz z liczbą transakcji. W małych powiatach (np. proszowickim – kilkanaście sprzedaży rocznie) mało pewne.</span></td><td><span class="lk-rel hi">wysoka</span></td></tr>
+            <tr><td><b>Opłaty i podatki</b><span class="small">Ustawy o kosztach sądowych i komorniczych, kodeks postępowania cywilnego. PCC przy licytacji jest sporne – stąd przełącznik.</span></td><td><span class="lk-rel hi">wysoka</span></td></tr>
+            <tr><td><b>Suma oszacowania i rękojmia</b><span class="small">Wyliczane z ceny wywołania (3/4 lub 2/3). Gdy nie wiemy, która to licytacja, nie podajemy. Zawsze sprawdź kwotę w obwieszczeniu.</span></td><td><span class="lk-rel mid">szacunek</span></td></tr>
+            <tr><td><b>Remont, utrzymanie, czas</b><span class="small">Twoje założenia w kalkulatorze. Domyślne wartości są orientacyjne.</span></td><td><span class="lk-rel mid">założenie</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="lk-card" id="slownik">
+      <h2>Słownik pojęć</h2>
+      <p class="note">Wszystkie podkreślone słowa z dashboardu w jednym miejscu.</p>
+      <input class="lk-in lk-gloss-q" type="search" placeholder="Szukaj pojęcia…" aria-label="Szukaj pojęcia" style="width: min(100%, 20rem)">
+      <div class="lk-gloss"></div>
+    </div>
+  </section>
+
+  <div class="lk-tipg" role="tooltip" hidden></div>
+</div>
+
+<script src="slownik.js"></script>
+<script src="app.js"></script>
+
+<p class="lk-footer">Dane zbierane automatycznie z publicznych źródeł (ListaPrzetargow.pl, Monitor Przetargów Adradar, RealAdvisor, GUS, Domiporta, Nieruchomości-online). Narzędzie do wstępnej selekcji ofert – nie jest poradą prawną, podatkową ani inwestycyjną. Przed wpłatą rękojmi zawsze sprawdź pełne obwieszczenie komornika i księgę wieczystą.</p>
+</div>
+</body>
+</html>
