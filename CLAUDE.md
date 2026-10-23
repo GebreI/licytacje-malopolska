@@ -16,6 +16,7 @@ Właściciel: Gabriel (GitHub: GebreI). Gdy coś jest niejasne – najpierw zapy
 
 ## Kryteria ofert
 Tylko mieszkania (nie lokale użytkowe, nie domy), województwo małopolskie, cena do 200 000 zł, tylko aktywne.
+TYLKO CAŁE MIESZKANIA (100% własności) – NIE pobieraj udziałów (np. „udział 1/2”, „1/8 części”, „udział we współwłasności”, mikrolokale sprzedawane jako udział). Gdy nie wiadomo, czy to całość, otwórz ofertę i sprawdź; w razie wątpliwości pomiń. `app.js` i tak odrzuca oferty z `typ` = "Udział" lub niepustym `udzial`.
 Rodzaje sprzedaży (pole `rodzaj` w data/licytacje.json): "komornicza", "syndyk" (syndyk/likwidator),
 "przetarg" (gminy, miasta, spółdzielnie, spółki Skarbu Państwa, KOWR, instytucje), "bank" (banki, windykacja),
 "ogłoszenie" (zwykłe ogłoszenia sprzedaży, rynek wtórny).
@@ -39,8 +40,8 @@ Rodzaje sprzedaży (pole `rodzaj` w data/licytacje.json): "komornicza", "syndyk"
 Źródła ofert (oficjalny licytacje.komornik.pl / elicytacje.komornik.pl blokują automatyczny odczyt – NIE obchodź tego; tak samo blokad otodom/olx/banków – pomiń):
 1. https://listaprzetargow.pl/oferty/mieszkania/malopolskie/cena-do-200 – wszystkie oferty przed sekcją "Zakończone". Rodzaj z URL oferty ("licytacja-komornicza"/"syndyk"/"przetarg"). Data na karcie = termin wadium/rękojmi (termin_wadium). Dla nowych ofert niekomorniczych sprawdź na stronie oferty, czy to na pewno Małopolska.
 2. Adradar, nie-ARCHIWALNE, cena ≤ 200 000 zł: https://przetargi.adradar.pl/p/mieszkania/27529/ma%C5%82opolskie/ + licytacje_komornicze | zakup_od_syndyka | miasto | spoldzielnia_mieszkaniowa | spolka_skarbu_panstwa. "Termin" = data licytacji/przetargu. Dla komorniczych: "pierwsza"/"druga"; "w trybie elektronicznym" → e-licytacja.
-3. Ogłoszenia i banki: https://www.domiporta.pl/mieszkanie/sprzedam/malopolskie?Price.To=200000 (wszystkie strony); otwórz nowe ogłoszenia (forma własności, rynek, czy sprzedaje syndyk/komornik/bank). Pomijaj rynek pierwotny, lokale użytkowe, ogłoszenia bez ceny. Mikrolokale jako „udział we współwłasności” → typ "Udział". Banki: https://www.pekao.com.pl/nieruchomosci/lista-nieruchomosci/oferta.html
-Połącz duplikaty (miejscowość + cena ±1 zł + podobny metraż). Zachowuj stare id i `dodano`; `sprawdzono` = dziś. Usuń zakończone.
+3. Ogłoszenia i banki: https://www.domiporta.pl/mieszkanie/sprzedam/malopolskie?Price.To=200000 (wszystkie strony); otwórz nowe ogłoszenia (forma własności, rynek, czy sprzedaje syndyk/komornik/bank). Pomijaj rynek pierwotny, lokale użytkowe, ogłoszenia bez ceny. Mikrolokale jako „udział we współwłasności” to udziały – pomijaj. Banki: https://www.pekao.com.pl/nieruchomosci/lista-nieruchomosci/oferta.html
+Połącz duplikaty (miejscowość + cena ±1 zł + podobny metraż). Zachowuj stare id i `dodano`; `sprawdzono` = dziś. Usuń zakończone i wszystkie udziały.
 
 Ceny rynkowe dla nowych miejscowości:
 - Ofertowa: https://realadvisor.pl/pl/ceny-mieszkan/powiat-<slug> – wartość "mieszkanie" dla gminy (raz w miesiącu odśwież wszystkie).

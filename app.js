@@ -161,7 +161,7 @@ qa('.lk-tabs button').forEach((b) => b.addEventListener('click', () => goTab(b.d
 root.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g) { if (g.dataset.sel) window.lkSel = g.dataset.sel; goTab(g.dataset.go, true); } });
 
 // ===== Filtry ofert =====
-const F = { ocena: q('.f-ocena'), typ: q('.f-typ'), rodzaj: q('.f-rodzaj'), cena: q('.f-cena'), m2min: q('.f-m2min'), m2max: q('.f-m2max'), zlm2: q('.f-zlm2'), od: q('.f-od'), do: q('.f-do') };
+const F = { ocena: q('.f-ocena'), rodzaj: q('.f-rodzaj'), cena: q('.f-cena'), m2min: q('.f-m2min'), m2max: q('.f-m2max'), zlm2: q('.f-zlm2'), od: q('.f-od'), do: q('.f-do') };
 F.cena.value = 200000;
 Object.values(F).forEach((x) => { x.addEventListener('input', () => window.lkDraw()); x.addEventListener('change', () => window.lkDraw()); });
 q('.f-reset').addEventListener('click', () => { Object.values(F).forEach((x) => { x.value = ''; }); F.cena.value = 200000; window.lkDraw(); });
@@ -287,6 +287,8 @@ function wczytajDane() {
     .then((r) => { if (!r.ok) throw new Error('data/' + id + '.json: ' + r.status); return r.json(); })
     .then((j) => { DATA[id] = Array.isArray(j) ? j : (j.rows || j.data || j); })))
     .then(() => {
+      // Tylko całe mieszkania (100%) – udziałów nie pokazujemy, nawet jeśli trafią do danych.
+      DATA.licytacje = DATA.licytacje.filter((r) => r.typ !== 'Udział' && !r.udzial);
       DATA.porownanie = calcPorownanie(DATA.licytacje, DATA.ceny_rynkowe);
       DATA.podsumowanie = calcPodsumowanie(DATA.licytacje, DATA.porownanie);
       DATA.trend_cen = calcTrendCen(DATA.historia_cen);
@@ -317,7 +319,6 @@ function filtered(rows) {
   return rows.filter((r) => {
     if (F.ocena.value === 'green' && r.oc.k !== 'green') return false;
     if (F.ocena.value === 'greenyellow' && r.oc.k === 'red') return false;
-    if (F.typ.value && r.typ !== F.typ.value) return false;
     if (F.rodzaj && F.rodzaj.value && rodz(r) !== F.rodzaj.value) return false;
     if (cena != null && r.cena > cena) return false;
     if (m2min != null && r.m2 < m2min) return false;

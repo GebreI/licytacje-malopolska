@@ -218,7 +218,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
     </div>
 
     <section class="lk-kpis" id="podsumowanie">
-      <div class="lk-card lk-kpi"><div class="lbl">Aktywne oferty</div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=liczba">—</div><div class="sub">mieszkania i <span class="t" data-t="udzial">udziały</span> do 200 tys. zł</div></div>
+      <div class="lk-card lk-kpi"><div class="lbl">Aktywne oferty</div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=liczba">—</div><div class="sub"><span class="t" data-t="calosc">całe mieszkania</span> do 200 tys. zł</div></div>
       <div class="lk-card lk-kpi"><div class="lbl">Najtańsze <span class="t" data-t="calosc">całe mieszkanie</span></div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=min_cena_cale">—</div><div class="sub"><span class="t" data-t="cena_wywolania">cena wywołania</span></div></div>
       <div class="lk-card lk-kpi"><div class="lbl">Najniższa <span class="t" data-t="zl_m2">cena za m²</span></div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=min_m2_cale">—</div><div class="sub">zł/m², całe mieszkania</div></div>
       <div class="lk-card lk-kpi"><div class="lbl">Typowo <span class="t" data-t="vs_ofertowe">vs ceny ofertowe</span></div><div class="val dash-skeleton" data-source="podsumowanie" data-field="wartosc" data-where="metryka=mediana_vs_ofertowa">—</div><div class="sub"><span class="t" data-t="mediana">mediana</span>, całe mieszkania</div></div>
@@ -259,9 +259,6 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
       <div class="lk-filters">
         <label><span class="t" data-t="ocena">Ocena</span>
           <select class="f-ocena"><option value="">Wszystkie</option><option value="green">Zielone</option><option value="greenyellow">Zielone i żółte</option></select>
-        </label>
-        <label>Typ
-          <select class="f-typ"><option value="">Wszystkie</option><option>Całe mieszkanie</option><option>Udział</option></select>
         </label>
         <label>Rodzaj sprzedaży
           <select class="f-rodzaj"><option value="">Wszystkie</option><option value="komornicza">Licytacja komornicza</option><option value="syndyk">Od syndyka</option><option value="przetarg">Przetarg (gmina, spółdzielnia, instytucja)</option><option value="bank">Bank / windykacja</option><option value="ogłoszenie">Zwykłe ogłoszenie</option></select>
@@ -514,7 +511,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 </div>
 
 <script src="slownik.js?v=2026-10-23"></script>
-<script src="app.js?v=2026-10-23"></script>
+<script src="app.js?v=2026-10-23-2"></script>
 
 <p class="lk-footer">Dane zbierane automatycznie z publicznych źródeł (ListaPrzetargow.pl, Monitor Przetargów Adradar, RealAdvisor, GUS, Domiporta, Nieruchomości-online). Narzędzie do wstępnej selekcji ofert – nie jest poradą prawną, podatkową ani inwestycyjną. Przed wpłatą rękojmi zawsze sprawdź pełne obwieszczenie komornika i księgę wieczystą.</p>
 </div>
