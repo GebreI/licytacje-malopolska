@@ -4,6 +4,16 @@ Statyczna strona (GitHub Pages) dla początkującego inwestora, który chce kupo
 remontować i sprzedawać. Wszystko po polsku, każde pojęcie ma wyjaśnienie po najechaniu (słownik w `slownik.js`).
 Właściciel: Gabriel (GitHub: GebreI). Gdy coś jest niejasne – najpierw zapytaj, nie zgaduj.
 
+## Jak działa projekt (ważne – przeczytaj najpierw)
+- To repozytorium jest JEDYNYM źródłem kodu i danych. Strona: https://gebrei.github.io/licytacje-malopolska/ (GitHub Pages, gałąź main).
+- Dane w `data/` aktualizuje automatycznie zaplanowane zadanie w chmurze Claude („Mieszkania do 200 tys. Małopolska – aktualizacja danych w repo”), codziennie ok. 6:52. Robi commit „Aktualizacja danych RRRR-MM-DD” i push na main. Działa bez włączonego komputera.
+- Ty (Claude Code) rozwijasz wygląd i funkcje strony: `index.html`, `app.js`, `slownik.js`, `dash-shim.js`.
+- ZAWSZE zacznij od `git pull` (automat codziennie dopisuje commity), a po zmianach: commit i `git push`.
+- Nie edytuj ręcznie `data/*.json`, chyba że Gabriel o to poprosi – nadpisze je poranny automat. Jeśli zmieniasz schemat danych, opisz to w tym pliku i powiedz Gabrielowi, że trzeba też zaktualizować prompt zaplanowanego zadania.
+- Dawny dashboard w aplikacji Claude to archiwum – nie jest już aktualizowany.
+- Podgląd lokalny: `python3 -m http.server 8000` w folderze repo i otwórz http://localhost:8000 (fetch plików JSON nie działa przy otwieraniu index.html bezpośrednio z dysku).
+- Pomysł na później: `dash-shim.js` to nakładka po dawnym dashboardzie – można ją usunąć i uprościć `app.js` do zwykłego ładowania JSON.
+
 ## Kryteria ofert
 Tylko mieszkania (nie lokale użytkowe, nie domy), województwo małopolskie, cena do 200 000 zł, tylko aktywne.
 Rodzaje sprzedaży (pole `rodzaj` w data/licytacje.json): "komornicza", "syndyk" (syndyk/likwidator),
@@ -26,7 +36,7 @@ Rodzaje sprzedaży (pole `rodzaj` w data/licytacje.json): "komornicza", "syndyk"
 - `data/ogloszenia.json` – aktualne ogłoszenia sprzedaży (rynek wtórny) do porównań: {id, obszar (miejscowość OFERTY), miejscowosc (gdzie jest ogłoszenie), lokalizacja, cena, m2, cena_m2, pokoje, rynek, zrodlo, url, pobrano}.
 - `data/koszty_stawki.json` – stałe opłaty (PCC 2%, wpis KW 200 zł, opróżnienie lokalu 1500 zł, PIT 19%, VAT 23%, świadectwo 700 zł). Nie zmieniaj bez potrzeby.
 
-## Codzienna aktualizacja danych (krok po kroku)
+## Aktualizacja danych (robi to automat; ręcznie tylko na prośbę Gabriela)
 Źródła ofert (oficjalny licytacje.komornik.pl / elicytacje.komornik.pl blokują automatyczny odczyt – NIE obchodź tego; tak samo blokad otodom/olx/banków – pomiń):
 1. https://listaprzetargow.pl/oferty/mieszkania/malopolskie/cena-do-200 – wszystkie oferty przed sekcją "Zakończone". Rodzaj z URL oferty ("licytacja-komornicza"/"syndyk"/"przetarg"). Data na karcie = termin wadium/rękojmi (termin_wadium). Dla nowych ofert niekomorniczych sprawdź na stronie oferty, czy to na pewno Małopolska.
 2. Adradar, nie-ARCHIWALNE, cena ≤ 200 000 zł: https://przetargi.adradar.pl/p/mieszkania/27529/ma%C5%82opolskie/ + licytacje_komornicze | zakup_od_syndyka | miasto | spoldzielnia_mieszkaniowa | spolka_skarbu_panstwa. "Termin" = data licytacji/przetargu. Dla komorniczych: "pierwsza"/"druga"; "w trybie elektronicznym" → e-licytacja.
@@ -43,7 +53,7 @@ Ogłoszenia (pełne odświeżenie w poniedziałki, w inne dni tylko nowe miejsco
 - Tylko sprzedaż z tej miejscowości, bez archiwalnych i sekcji "w promieniu X km". Pomijaj rynek pierwotny ("nowe-mieszkanie", "/nowe/", "deweloperski", serie inwestycji o równych cenach za m²). Usuń duplikaty między serwisami.
 - Gdy w miejscowości brak ogłoszeń, weź najbliższe miasto z gminy/powiatu (Osieczany → Myślenice, Tymbark → Limanowa).
 
-Po aktualizacji: sprawdź, że JSON jest poprawny, commit "Aktualizacja danych RRRR-MM-DD" i push na `main` (GitHub Pages odświeży się sam).
+Po ręcznej aktualizacji: sprawdź, że JSON jest poprawny, commit "Aktualizacja danych RRRR-MM-DD" i push na `main` (GitHub Pages odświeży się sam).
 
 ## Zasady
 - Nie publikuj nic, co podszywa się pod portal komorników; linkuj do źródeł.
