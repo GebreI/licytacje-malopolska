@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Licytacje komornicze mieszkań – Małopolska</title>
-<meta name="description" content="Mieszkania z licytacji komorniczych w Małopolsce do 200 tys. zł – porównanie z rynkiem, kalkulator kosztów remontu i odsprzedaży, poradnik dla początkujących.">
+<title>Licytacje i okazje: mieszkania do 200 tys. zł – Małopolska</title>
+<meta name="description" content="Mieszkania do 200 tys. zł w Małopolsce: licytacje komornicze, syndyk, przetargi i ogłoszenia – porównanie z rynkiem, kalkulator kosztów remontu i odsprzedaży, poradnik dla początkujących.">
 <style>
 :root {
   --font-anthropic-sans: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
@@ -194,8 +194,8 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 
 <div class="lk" id="dashboard">
   <header id="naglowek">
-    <h1>Licytacje komornicze mieszkań – Małopolska</h1>
-    <p class="lead">Mieszkania z <span class="t" data-t="licytacja">licytacji komorniczych</span> w województwie małopolskim z <span class="t" data-t="cena_wywolania">ceną wywołania</span> do 200 000 zł – z porównaniem do rynku, kalkulatorem kosztów remontu i odsprzedaży oraz poradnikiem dla początkujących. Podkreślone słowa wyjaśniają się po najechaniu lub dotknięciu.</p>
+    <h1>Licytacje i okazje: mieszkania do 200 tys. zł – Małopolska</h1>
+    <p class="lead">Mieszkania w województwie małopolskim do 200 000 zł: z <span class="t" data-t="licytacja">licytacji komorniczych</span>, od syndyków, z przetargów gmin, spółdzielni i instytucji, od banków oraz ze zwykłych ogłoszeń sprzedaży – z porównaniem do rynku, kalkulatorem kosztów remontu i odsprzedaży oraz poradnikiem dla początkujących. Podkreślone słowa wyjaśniają się po najechaniu lub dotknięciu.</p>
     <p class="lk-fresh" data-source="licytacje"><span class="lk-fresh-txt">—</span></p>
   </header>
 
@@ -264,7 +264,10 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
         <label>Typ
           <select class="f-typ"><option value="">Wszystkie</option><option>Całe mieszkanie</option><option>Udział</option></select>
         </label>
-        <label><span class="t" data-t="cena_wywolania">Cena wywołania</span> do (zł)
+        <label>Rodzaj sprzedaży
+          <select class="f-rodzaj"><option value="">Wszystkie</option><option value="komornicza">Licytacja komornicza</option><option value="syndyk">Od syndyka</option><option value="przetarg">Przetarg (gmina, spółdzielnia, instytucja)</option><option value="bank">Bank / windykacja</option><option value="ogłoszenie">Zwykłe ogłoszenie</option></select>
+        </label>
+        <label><span class="t" data-t="cena_wywolania">Cena</span> do (zł)
           <input class="f-cena" type="number" min="0" step="1000" inputmode="numeric">
         </label>
         <label>Powierzchnia (m²)

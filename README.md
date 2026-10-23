@@ -1,6 +1,6 @@
-# Licytacje komornicze mieszkań – Małopolska
+# Mieszkania do 200 tys. zł – Małopolska
 
-Strona z ofertami mieszkań z licytacji komorniczych w województwie małopolskim (cena wywołania do 200 000 zł):
+Strona z mieszkaniami do 200 000 zł w województwie małopolskim – licytacje komornicze, sprzedaż od syndyka, przetargi, oferty banków i zwykłe ogłoszenia:
 porównanie z rynkiem (ceny ofertowe, transakcyjne GUS, aktualne ogłoszenia, historia 10 lat),
 kalkulator kosztów remontu i odsprzedaży oraz poradnik dla początkujących.
 

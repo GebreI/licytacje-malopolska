@@ -1,11 +1,14 @@
-# Projekt: Licytacje komornicze mieszkań – Małopolska
+# Projekt: Mieszkania do 200 tys. zł – Małopolska (licytacje i inne okazje)
 
 Statyczna strona (GitHub Pages) dla początkującego inwestora, który chce kupować mieszkania z licytacji komorniczych,
 remontować i sprzedawać. Wszystko po polsku, każde pojęcie ma wyjaśnienie po najechaniu (słownik w `slownik.js`).
 Właściciel: Gabriel (GitHub: GebreI). Gdy coś jest niejasne – najpierw zapytaj, nie zgaduj.
 
 ## Kryteria ofert
-Tylko mieszkania, licytacje komornicze, województwo małopolskie, cena wywołania do 200 000 zł, tylko aktywne.
+Tylko mieszkania (nie lokale użytkowe, nie domy), województwo małopolskie, cena do 200 000 zł, tylko aktywne.
+Rodzaje sprzedaży (pole `rodzaj` w data/licytacje.json): "komornicza", "syndyk" (syndyk/likwidator),
+"przetarg" (gminy, miasta, spółdzielnie, spółki Skarbu Państwa, KOWR, instytucje), "bank" (banki, windykacja),
+"ogłoszenie" (zwykłe ogłoszenia sprzedaży, rynek wtórny).
 
 ## Struktura
 - `index.html` – układ i style (5 zakładek: Start, Oferty, Na tle rynku, Kalkulator zysku, Poradnik). Tokeny kolorów jasny/ciemny na górze.
@@ -16,7 +19,7 @@ Tylko mieszkania, licytacje komornicze, województwo małopolskie, cena wywołan
 - d3 v7 z cdnjs.
 
 ## Dane i schematy
-- `data/licytacje.json` – oferty: id ("lp-<nr listaprzetargow>" lub "ad-<nr adradar>"), miejscowosc, lokalizacja, cena, m2, cena_m2, pokoje, typ ("Całe mieszkanie"/"Udział"), udzial ("1/2"|null), licytacja ("pierwsza"/"druga"/""), tryb ("e-licytacja"/"stacjonarna"/""), termin (data licytacji RRRR-MM-DD|null), termin_wadium (termin rękojmi|null), rabat_pct, uwagi, dodano, sprawdzono, url, url2.
+- `data/licytacje.json` – oferty WSZYSTKICH rodzajów (mimo nazwy): id ("lp-<nr listaprzetargow>", "ad-<nr adradar>" lub "do-<nr domiporta>"), rodzaj, miejscowosc, lokalizacja, cena, m2, cena_m2, pokoje, typ ("Całe mieszkanie"/"Udział"), udzial ("1/2"|null), licytacja ("pierwsza"/"druga"/""), tryb ("e-licytacja"/"stacjonarna"/""), termin (data licytacji RRRR-MM-DD|null), termin_wadium (termin rękojmi|null), rabat_pct, uwagi, dodano, sprawdzono, url, url2.
   - Ryzyka rozpoznawane po słowach w `uwagi`: "służebność", "brak prawnie zabezpieczonego dojazdu", "piec węglowy do wymiany"/"do wymiany".
 - `data/ceny_rynkowe.json` – na miejscowość: gmina, powiat, ofertowa_m2 (RealAdvisor, gmina, miesięcznie), ofertowa_zakres, ofertowa_data, ofertowa_url, transakcyjna_m2 (GUS BDL, powiat, rynek wtórny), transakcyjna_zakres, transakcyjna_rok, transakcyjna_url.
 - `data/historia_cen.json` – 10 lat GUS: {powiat, obszar, rok, mediana_m2, transakcje}; województwo jako powiat "małopolskie".
@@ -24,9 +27,10 @@ Tylko mieszkania, licytacje komornicze, województwo małopolskie, cena wywołan
 - `data/koszty_stawki.json` – stałe opłaty (PCC 2%, wpis KW 200 zł, opróżnienie lokalu 1500 zł, PIT 19%, VAT 23%, świadectwo 700 zł). Nie zmieniaj bez potrzeby.
 
 ## Codzienna aktualizacja danych (krok po kroku)
-Źródła ofert (oficjalny licytacje.komornik.pl / elicytacje.komornik.pl blokują automatyczny odczyt – NIE obchodź tego):
-1. https://listaprzetargow.pl/oferty/licytacje-komornicze/mieszkania/malopolskie/cena-do-200 – oferty przed sekcją "Zakończone". Data na karcie = termin wpłaty rękojmi (termin_wadium).
-2. https://przetargi.adradar.pl/p/mieszkania/27529/ma%C5%82opolskie/licytacje_komornicze (+ ?page=2 …) – nie-ARCHIWALNE, cena ≤ 200 000 zł. "Termin" = data licytacji. "pierwsza"/"druga"; "w trybie elektronicznym" → e-licytacja.
+Źródła ofert (oficjalny licytacje.komornik.pl / elicytacje.komornik.pl blokują automatyczny odczyt – NIE obchodź tego; tak samo blokad otodom/olx/banków – pomiń):
+1. https://listaprzetargow.pl/oferty/mieszkania/malopolskie/cena-do-200 – wszystkie oferty przed sekcją "Zakończone". Rodzaj z URL oferty ("licytacja-komornicza"/"syndyk"/"przetarg"). Data na karcie = termin wadium/rękojmi (termin_wadium). Dla nowych ofert niekomorniczych sprawdź na stronie oferty, czy to na pewno Małopolska.
+2. Adradar, nie-ARCHIWALNE, cena ≤ 200 000 zł: https://przetargi.adradar.pl/p/mieszkania/27529/ma%C5%82opolskie/ + licytacje_komornicze | zakup_od_syndyka | miasto | spoldzielnia_mieszkaniowa | spolka_skarbu_panstwa. "Termin" = data licytacji/przetargu. Dla komorniczych: "pierwsza"/"druga"; "w trybie elektronicznym" → e-licytacja.
+3. Ogłoszenia i banki: https://www.domiporta.pl/mieszkanie/sprzedam/malopolskie?Price.To=200000 (wszystkie strony); otwórz nowe ogłoszenia (forma własności, rynek, czy sprzedaje syndyk/komornik/bank). Pomijaj rynek pierwotny, lokale użytkowe, ogłoszenia bez ceny. Mikrolokale jako „udział we współwłasności” → typ "Udział". Banki: https://www.pekao.com.pl/nieruchomosci/lista-nieruchomosci/oferta.html
 Połącz duplikaty (miejscowość + cena ±1 zł + podobny metraż). Zachowuj stare id i `dodano`; `sprawdzono` = dziś. Usuń zakończone.
 
 Ceny rynkowe dla nowych miejscowości:

@@ -71,7 +71,7 @@ dash.calc('podobne', {
     const [a, b] = String(r.udzial || '1/1').split('/').map(Number);
     const czesc = a && b ? a / b : 1;
     const m2calosc = Number(r.cena) / czesc / Number(r.m2);
-    const pula = ogloszenia.filter((o) => o.obszar === r.miejscowosc && o.rynek !== 'pierwotny');
+    const pula = ogloszenia.filter((o) => o.obszar === r.miejscowosc && o.rynek !== 'pierwotny' && o.id !== r.id && o.url !== r.url && o.url !== r.url2);
     let podobne = pula.filter((o) => Math.abs(Number(o.m2) / Number(r.m2) - 1) <= 0.3);
     let dopasowanie = 'metraż ±30%';
     if (podobne.length < 3) { podobne = pula; dopasowanie = pula.length ? 'cała miejscowość' : 'brak ogłoszeń'; }
@@ -106,6 +106,14 @@ const dataPL = (s) => s ? new Date(s + 'T12:00:00').toLocaleDateString('pl-PL', 
 const dataKr = (s) => s ? new Date(s + 'T12:00:00').toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' }) : '—';
 const dzis = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth(), d.getDate()); };
 const dni = (s) => s ? Math.round((new Date(s + 'T00:00:00') - dzis()) / 86400000) : null;
+const RODZ = { komornicza: 'Licytacja komornicza', syndyk: 'Od syndyka', przetarg: 'Przetarg (gmina, spółdzielnia, instytucja)', bank: 'Bank / windykacja', 'ogłoszenie': 'Zwykłe ogłoszenie' };
+const RODZ_K = { komornicza: 'komornik', syndyk: 'syndyk', przetarg: 'przetarg', bank: 'bank', 'ogłoszenie': 'ogłoszenie' };
+const rodz = (r) => r.rodzaj || 'komornicza';
+const isKom = (r) => rodz(r) === 'komornicza';
+const isOgl = (r) => rodz(r) === 'ogłoszenie';
+const nazwaTerminu = (r) => isKom(r) ? 'Licytacja' : rodz(r) === 'syndyk' ? 'Termin ofert / przetargu' : 'Przetarg';
+const nazwaWadium = (r) => isKom(r) ? 'Termin wpłaty rękojmi' : 'Termin wpłaty wadium';
+const nazwaCeny = (r) => isKom(r) ? 'Cena wywołania' : isOgl(r) ? 'Cena ofertowa' : 'Cena wywoławcza';
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
 const term = (key, txt) => { const s = el('span', 't', txt || (S[key] ? S[key][0] : key)); s.dataset.t = key; s.tabIndex = 0; return s; };
 const segColor = (i) => dash.colors[i % dash.colors.length];
@@ -163,7 +171,7 @@ qa('.lk-tabs button').forEach((b) => b.addEventListener('click', () => goTab(b.d
 root.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g) { if (g.dataset.sel) window.lkSel = g.dataset.sel; goTab(g.dataset.go, true); } });
 
 // ===== Filtry ofert =====
-const F = { ocena: q('.f-ocena'), typ: q('.f-typ'), cena: q('.f-cena'), m2min: q('.f-m2min'), m2max: q('.f-m2max'), zlm2: q('.f-zlm2'), od: q('.f-od'), do: q('.f-do') };
+const F = { ocena: q('.f-ocena'), typ: q('.f-typ'), rodzaj: q('.f-rodzaj'), cena: q('.f-cena'), m2min: q('.f-m2min'), m2max: q('.f-m2max'), zlm2: q('.f-zlm2'), od: q('.f-od'), do: q('.f-do') };
 F.cena.value = 200000;
 Object.values(F).forEach((x) => { x.addEventListener('input', () => window.lkDraw()); x.addEventListener('change', () => window.lkDraw()); });
 q('.f-reset').addEventListener('click', () => { Object.values(F).forEach((x) => { x.value = ''; }); F.cena.value = 200000; window.lkDraw(); });
@@ -240,7 +248,7 @@ function oszacowanie(r) {
 function flagi(r, f) {
   const out = [];
   const u = (r.uwagi || '').toLowerCase();
-  if (r.typ === 'Udział') out.push({ lvl: 'red', t: 'udzial', txt: 'Kupujesz tylko udział ' + r.udzial + ' w mieszkaniu', s: 'Nie zamieszkasz ani nie sprzedasz go swobodnie bez zgody współwłaściciela.' });
+  if (r.typ === 'Udział') out.push(r.udzial ? { lvl: 'red', t: 'udzial', txt: 'Kupujesz tylko udział ' + r.udzial + ' w mieszkaniu', s: 'Nie zamieszkasz ani nie sprzedasz go swobodnie bez zgody współwłaściciela.' } : { lvl: 'red', t: 'udzial', txt: 'Udział we współwłasności zamiast odrębnego lokalu', s: 'Bez osobnej księgi wieczystej – trudniej o kredyt dla kupca i o odsprzedaż.' });
   if (u.includes('służebno')) out.push({ lvl: 'red', t: 'sluzebnosc', txt: 'Lokal obciążony służebnością mieszkania', s: 'Ktoś może mieć prawo mieszkać tu dożywotnio – wartość dla kupującego mocno spada.' });
   if (u.includes('dojazd') || u.includes('dostęp')) out.push({ lvl: 'red', t: 'dojazd', txt: 'Brak prawnie zapewnionego dojazdu', s: 'Utrudnia kredyt Twojemu przyszłemu kupcowi i obniża cenę sprzedaży.' });
   if (u.includes('węgl') || u.includes('do wymiany')) out.push({ lvl: 'yellow', t: 'remont', txt: 'Instalacje do wymiany (np. piec węglowy)', s: 'Doliczyć wyższy koszt remontu.' });
@@ -250,10 +258,20 @@ function flagi(r, f) {
   if (r.og_liczba != null && r.og_liczba < 3) out.push({ lvl: 'yellow', t: 'podobne', txt: r.og_liczba ? 'Tylko ' + r.og_liczba + ' ogłosz. sprzedaży w okolicy' : 'Brak aktualnych ogłoszeń sprzedaży w tej miejscowości', s: 'Rynek jest mały – sprzedaż może potrwać dłużej, a cena jest trudna do oszacowania.' });
   if (r.og_skad && r.og_skad !== r.miejscowosc) out.push({ lvl: 'info', t: 'podobne', txt: 'Porównanie z ogłoszeniami z: ' + r.og_skad, s: 'W ' + r.miejscowosc + ' nie ma ogłoszeń – to inny, zwykle droższy rynek niż wieś.' });
   const dl = dni(r.termin);
-  if (!r.termin) out.push({ lvl: 'yellow', t: 'termin', txt: 'Nie znamy daty licytacji', s: 'Sprawdź ją w obwieszczeniu komornika.' });
+  if (!isKom(r)) {
+    const dw2 = dni(r.termin_wadium);
+    if (!isOgl(r) && !r.termin && !r.termin_wadium) out.push({ lvl: 'yellow', t: 'termin', txt: 'Nie znamy terminu przetargu', s: 'Sprawdź go w ogłoszeniu organizatora.' });
+    if (dw2 != null && dw2 >= 0 && dw2 <= 7) out.push({ lvl: 'yellow', t: 'termin_rekojmi', txt: dw2 === 0 ? 'Wadium trzeba wpłacić dziś' : 'Wadium za ' + dw2 + ' dni – mało czasu', s: 'Wadium musi wpłynąć przed terminem, a trzeba jeszcze sprawdzić KW i lokal.' });
+    if (dw2 != null && dw2 < 0) out.push({ lvl: 'yellow', t: 'termin_rekojmi', txt: 'Termin wpłaty wadium według źródła już minął', s: 'Sprawdź u organizatora, czy oferta jest jeszcze aktualna.' });
+    if (rodz(r) === 'syndyk') out.push({ lvl: 'info', t: 'termin', txt: 'Sprzedaż przez syndyka', s: 'Hipoteki wygasają jak przy licytacji, ale cena bywa netto (+VAT) – przeczytaj regulamin przetargu.' });
+    if (rodz(r) === 'przetarg') out.push({ lvl: 'info', t: 'termin', txt: 'Przetarg publiczny', s: 'Zasady, wadium i termin są w ogłoszeniu organizatora (gmina, spółdzielnia, instytucja).' });
+    if (rodz(r) === 'bank') out.push({ lvl: 'info', t: 'termin', txt: 'Sprzedaż przez bank / firmę windykacyjną', s: 'Zwykle umowa u notariusza; sprawdź, czy lokal jest wolny od lokatorów.' });
+    if (isOgl(r)) out.push({ lvl: 'info', t: 'termin', txt: 'Zwykłe ogłoszenie sprzedaży', s: 'Cenę można negocjować; kupujesz u notariusza, bez licytacji i rękojmi.' });
+  }
+  else if (!r.termin) out.push({ lvl: 'yellow', t: 'termin', txt: 'Nie znamy daty licytacji', s: 'Sprawdź ją w obwieszczeniu komornika.' });
   else if (dl != null && dl <= 7) out.push({ lvl: 'yellow', t: 'termin_rekojmi', txt: dl < 0 ? 'Licytacja już się odbyła lub trwa' : dl === 0 ? 'Licytacja dziś' : dl === 1 ? 'Licytacja jutro – mało czasu' : 'Licytacja za ' + dl + ' dni – mało czasu', s: 'Rękojmia musi wpłynąć wcześniej, a trzeba jeszcze sprawdzić KW i lokal.' });
   const dw = dni(r.termin_wadium);
-  if (dw != null && dw < 0) out.push({ lvl: 'yellow', t: 'termin_rekojmi', txt: 'Termin wpłaty rękojmi według źródła już minął', s: 'Sprawdź w obwieszczeniu, czy jeszcze można przystąpić.' });
+  if (isKom(r) && dw != null && dw < 0) out.push({ lvl: 'yellow', t: 'termin_rekojmi', txt: 'Termin wpłaty rękojmi według źródła już minął', s: 'Sprawdź w obwieszczeniu, czy jeszcze można przystąpić.' });
   if (r.trend && r.trend.wiarygodnosc === 'niska') out.push({ lvl: 'yellow', t: 'wiarygodnosc', txt: 'Mało transakcji w tym powiecie', s: 'Cena transakcyjna z GUS jest tu mało pewna – oprzyj się na cenie ofertowej i sprawdź ogłoszenia z okolicy.' });
   if (r.trend && r.trend.srednio_rocznie_pct != null) out.push({ lvl: 'info', t: 'trend', txt: 'Ceny w powiecie ' + r.trend.rok_od + '–' + r.trend.rok_do + ': ' + pct(r.trend.wzrost_10l_pct), s: 'Średnio ' + num(r.trend.srednio_rocznie_pct, 1) + '% rocznie, w ostatnim roku ' + pct(r.trend.zmiana_rr_pct) + ' (GUS ' + r.trend.rok_od + '–' + r.trend.rok_do + ').' });
   if (r.licytacja === 'druga') out.push({ lvl: 'info', t: 'druga', txt: 'Druga licytacja – niższa cena wywołania', s: 'Na pierwszej nie było chętnych. Sprawdź dlaczego.' });
@@ -296,6 +314,7 @@ function filtered(rows) {
     if (F.ocena.value === 'green' && r.oc.k !== 'green') return false;
     if (F.ocena.value === 'greenyellow' && r.oc.k === 'red') return false;
     if (F.typ.value && r.typ !== F.typ.value) return false;
+    if (F.rodzaj && F.rodzaj.value && rodz(r) !== F.rodzaj.value) return false;
     if (cena != null && r.cena > cena) return false;
     if (m2min != null && r.m2 < m2min) return false;
     if (m2max != null && r.m2 > m2max) return false;
@@ -316,7 +335,7 @@ function drawStart(D) {
   const list = D.rows.slice().sort(best).slice(0, 3);
   list.forEach((r) => {
     const c = el('div', 'lk-top');
-    const h = el('div', 'row'); h.append(badge(r.oc), el('span', null, r.termin ? 'licytacja ' + dataKr(r.termin) : ''));
+    const h = el('div', 'row'); h.append(badge(r.oc), el('span', null, (isKom(r) ? '' : RODZ_K[rodz(r)] + ' · ') + (r.termin ? nazwaTerminu(r).toLowerCase() + ' ' + dataKr(r.termin) : '')));
     c.append(h, el('div', 'ttl', label2(r)));
     c.appendChild(el('div', 'big', zl(r.cena)));
     const row = (k, v, t) => { const x = el('div', 'row'); const a = el('span'); a.appendChild(term(t, k)); x.append(a, el('b', null, v)); c.appendChild(x); };
@@ -333,8 +352,8 @@ function drawStart(D) {
   box.replaceChildren();
   const ev = [];
   D.rows.forEach((r) => {
-    if (r.termin_wadium) ev.push({ d: r.termin_wadium, txt: 'Termin wpłaty rękojmi', t: 'termin_rekojmi', r });
-    if (r.termin) ev.push({ d: r.termin, txt: 'Licytacja', t: 'termin', r });
+    if (r.termin_wadium) ev.push({ d: r.termin_wadium, txt: nazwaWadium(r), t: 'termin_rekojmi', r });
+    if (r.termin) ev.push({ d: r.termin, txt: nazwaTerminu(r), t: 'termin', r });
   });
   ev.filter((e) => { const x = dni(e.d); return x != null && x >= 0 && x <= 60; }).sort((a, b) => a.d.localeCompare(b.d)).forEach((e) => {
     const row = el('div', 'lk-date');
@@ -384,7 +403,8 @@ function drawOferty(D, rows) {
     const tags = el('span', 'small');
     tags.appendChild(badge(r.oc));
     if (isNew(r)) { const t = el('span', 'lk-tag new', 'nowa'); tags.appendChild(t); }
-    if (r.udzial) { const t = el('span', 'lk-tag bad', 'udział ' + r.udzial); t.dataset.t = 'udzial'; tags.appendChild(t); }
+    if (!isKom(r)) tags.appendChild(el('span', 'lk-tag', RODZ_K[rodz(r)]));
+    if (r.typ === 'Udział') { const t = el('span', 'lk-tag bad', r.udzial ? 'udział ' + r.udzial : 'udział'); t.dataset.t = 'udzial'; tags.appendChild(t); }
     a.appendChild(tags);
     td('num').textContent = zl(r.cena);
     td('num').textContent = num(r.m2, 2);
@@ -393,7 +413,7 @@ function drawOferty(D, rows) {
     pc(r.vs_ofertowa_pct);
     const co = pc(r.vs_ogloszenia_pct); if (r.og_liczba != null) co.appendChild(el('span', 'small', r.og_liczba + ' ogł.'));
     const t = td();
-    t.textContent = r.termin ? dataPL(r.termin) : 'brak daty';
+    t.textContent = r.termin ? dataPL(r.termin) : isKom(r) ? 'brak daty' : r.termin_wadium ? 'wadium ' + dataKr(r.termin_wadium) : '—';
     if (r.tryb) t.appendChild(el('span', 'small', r.tryb));
     td('lk-hide-narrow').textContent = r.typ;
     return tr;
@@ -408,18 +428,23 @@ function drawDetail(D, r) {
   if (!r) { box.appendChild(el('div', 'lk-empty', 'Wybierz ofertę z tabeli.')); return; }
   const head = el('div', 'lk-detail-head');
   const h = el('div'); h.appendChild(el('h2', null, label2(r)));
-  h.appendChild(el('p', 'note', (r.uwagi || '') + (r.sprawdzono ? ' · sprawdzono ' + dataKr(r.sprawdzono) : '')));
+  h.appendChild(el('p', 'note', RODZ[rodz(r)] + ' · ' + (r.uwagi || '') + (r.sprawdzono ? ' · sprawdzono ' + dataKr(r.sprawdzono) : '')));
   head.append(h, badge(r.oc));
   box.appendChild(head);
 
   const facts = el('div', 'lk-facts');
   const fact = (t, k, v, s) => { const f = el('div', 'lk-fact'); const kk = el('div', 'k'); kk.appendChild(term(t, k)); f.append(kk, el('div', 'v', v)); if (s) f.appendChild(el('div', 's', s)); facts.appendChild(f); };
   const osz = oszacowanie(r);
-  fact('cena_wywolania', 'Cena wywołania', zl(r.cena), r.licytacja ? (r.licytacja === 'pierwsza' ? '3/4 sumy oszacowania' : '2/3 sumy oszacowania') : null);
-  fact('suma_oszacowania', 'Suma oszacowania', osz ? '~' + zl(osz) : '—', osz ? 'szacunek z ceny wywołania' : 'sprawdź w obwieszczeniu');
-  fact('rekojmia', 'Rękojmia do wpłaty', osz ? '~' + zl(osz / 10) : '—', osz ? '1/10 sumy oszacowania' : 'sprawdź w obwieszczeniu');
-  fact('termin', 'Licytacja', r.termin ? dataPL(r.termin) : 'brak daty', [r.licytacja ? r.licytacja + ' licytacja' : '', r.tryb].filter(Boolean).join(' · ') || null);
-  fact('termin_rekojmi', 'Termin rękojmi', r.termin_wadium ? dataPL(r.termin_wadium) : '—', r.termin_wadium ? (dni(r.termin_wadium) >= 0 ? 'za ' + dni(r.termin_wadium) + ' dni' : 'minął') : 'brak w źródle');
+  fact('cena_wywolania', nazwaCeny(r), zl(r.cena), isKom(r) && r.licytacja ? (r.licytacja === 'pierwsza' ? '3/4 sumy oszacowania' : '2/3 sumy oszacowania') : isKom(r) ? null : RODZ[rodz(r)]);
+  if (isKom(r)) {
+    fact('suma_oszacowania', 'Suma oszacowania', osz ? '~' + zl(osz) : '—', osz ? 'szacunek z ceny wywołania' : 'sprawdź w obwieszczeniu');
+    fact('rekojmia', 'Rękojmia do wpłaty', osz ? '~' + zl(osz / 10) : '—', osz ? '1/10 sumy oszacowania' : 'sprawdź w obwieszczeniu');
+    fact('termin', 'Licytacja', r.termin ? dataPL(r.termin) : 'brak daty', [r.licytacja ? r.licytacja + ' licytacja' : '', r.tryb].filter(Boolean).join(' · ') || null);
+    fact('termin_rekojmi', 'Termin rękojmi', r.termin_wadium ? dataPL(r.termin_wadium) : '—', r.termin_wadium ? (dni(r.termin_wadium) >= 0 ? 'za ' + dni(r.termin_wadium) + ' dni' : 'minął') : 'brak w źródle');
+  } else if (!isOgl(r)) {
+    fact('termin', nazwaTerminu(r), r.termin ? dataPL(r.termin) : 'brak daty', r.termin ? null : 'sprawdź w ogłoszeniu');
+    fact('termin_rekojmi', 'Termin wadium', r.termin_wadium ? dataPL(r.termin_wadium) : '—', r.termin_wadium ? (dni(r.termin_wadium) >= 0 ? 'za ' + dni(r.termin_wadium) + ' dni' : 'minął') : 'brak w źródle');
+  }
   fact('zl_m2', 'Powierzchnia', num(r.m2, 2) + ' m²', (r.pokoje ? r.pokoje + ' pok. · ' : '') + num(r.cena_m2) + ' zł/m²');
   fact('vs_ofertowe', 'Taniej niż w ogłoszeniach', pct(r.vs_ofertowa_pct), r.rynek_ofertowa_m2 ? 'rynek: ' + num(r.rynek_ofertowa_m2) + ' zł/m²' : null);
   fact('vs_ogloszenia', 'Vs podobne ogłoszenia', pct(r.vs_ogloszenia_pct), r.og_mediana_m2 ? 'mediana ' + num(r.og_mediana_m2) + ' zł/m² · ' + r.og_liczba + ' ogł. (' + r.og_dopasowanie + ')' : 'brak ogłoszeń w okolicy');
@@ -429,7 +454,7 @@ function drawDetail(D, r) {
   if (r.f) {
     fact('zysk', 'Szacowany zysk', zlk(r.f.zysk), 'zwrot ' + pct(r.f.roi * 100) + ' · wkład ' + zlk(r.f.wklad));
     const mx = maksCena(r, D.st);
-    fact('maks_cena', 'Maks. cena do licytowania', mx ? zl(mx) : 'nie opłaca się', mx ? (mx >= r.cena ? pct((mx / r.cena - 1) * 100) + ' ponad wywołanie' : 'poniżej ceny wywołania!') : 'przy celu ' + av(A.cel) + '% zwrotu');
+    fact('maks_cena', isOgl(r) ? 'Maks. cena do zapłaty' : isKom(r) ? 'Maks. cena do licytowania' : 'Maks. cena w ofercie', mx ? zl(mx) : 'nie opłaca się', mx ? (mx >= r.cena ? pct((mx / r.cena - 1) * 100) + ' ponad wywołanie' : 'poniżej ceny wywołania!') : 'przy celu ' + av(A.cel) + '% zwrotu');
   }
   box.appendChild(facts);
 
@@ -441,13 +466,27 @@ function drawDetail(D, r) {
   const c2 = el('div'); c2.appendChild(el('h3', null, 'Co zrobić teraz'));
   const ol = el('ol', 'lk-todo');
   const todo = [];
-  todo.push('Otwórz ogłoszenie i znajdź pełne obwieszczenie komornika (numer KW, sygnatura, dokładna rękojmia).');
-  todo.push('Sprawdź księgę wieczystą na ekw.ms.gov.pl – dział III i IV.');
-  todo.push('Umów się na oględziny i przeczytaj operat w kancelarii komornika.');
-  todo.push('Ustaw w kalkulatorze realny remont dla tego mieszkania i sprawdź maksymalną cenę.');
-  if (r.tryb === 'e-licytacja') todo.push('Załóż konto na elicytacje.komornik.pl i potwierdź tożsamość z wyprzedzeniem.');
-  if (r.termin_wadium && dni(r.termin_wadium) >= 0) todo.push('Wpłać rękojmię najpóźniej ' + dataPL(r.termin_wadium) + ' – i miej gotówkę na resztę ceny.');
-  else todo.push('Wpłać rękojmię w terminie z obwieszczenia – i miej gotówkę na resztę ceny.');
+  if (isKom(r)) {
+    todo.push('Otwórz ogłoszenie i znajdź pełne obwieszczenie komornika (numer KW, sygnatura, dokładna rękojmia).');
+    todo.push('Sprawdź księgę wieczystą na ekw.ms.gov.pl – dział III i IV.');
+    todo.push('Umów się na oględziny i przeczytaj operat w kancelarii komornika.');
+    todo.push('Ustaw w kalkulatorze realny remont dla tego mieszkania i sprawdź maksymalną cenę.');
+    if (r.tryb === 'e-licytacja') todo.push('Załóż konto na elicytacje.komornik.pl i potwierdź tożsamość z wyprzedzeniem.');
+    if (r.termin_wadium && dni(r.termin_wadium) >= 0) todo.push('Wpłać rękojmię najpóźniej ' + dataPL(r.termin_wadium) + ' – i miej gotówkę na resztę ceny.');
+    else todo.push('Wpłać rękojmię w terminie z obwieszczenia – i miej gotówkę na resztę ceny.');
+  } else if (isOgl(r)) {
+    todo.push('Zadzwoń do sprzedającego: forma własności (odrębna KW czy udział), kto jest zameldowany, czynsz i fundusz remontowy.');
+    todo.push('Sprawdź księgę wieczystą na ekw.ms.gov.pl – dział III i IV.');
+    todo.push('Obejrzyj lokal i budynek; zapytaj spółdzielnię/wspólnotę o planowane remonty.');
+    todo.push('Ustaw w kalkulatorze realny remont i negocjuj cenę poniżej wyliczonej maksymalnej.');
+  } else {
+    todo.push('Otwórz ogłoszenie i pobierz regulamin przetargu (cena netto/brutto, VAT, wadium, sposób składania ofert).');
+    todo.push('Sprawdź księgę wieczystą na ekw.ms.gov.pl – dział III i IV.');
+    todo.push('Umów oględziny u organizatora (syndyka, gminy, spółdzielni) i zapytaj o operat szacunkowy.');
+    todo.push('Ustaw w kalkulatorze realny remont dla tego mieszkania i sprawdź maksymalną cenę.');
+    if (r.termin_wadium && dni(r.termin_wadium) >= 0) todo.push('Wpłać wadium najpóźniej ' + dataPL(r.termin_wadium) + ' i złóż ofertę w terminie.');
+    else todo.push('Wpłać wadium i złóż ofertę w terminie z ogłoszenia.');
+  }
   todo.forEach((t) => ol.appendChild(el('li', null, t)));
   c2.appendChild(ol);
   g.append(c1, c2);
@@ -459,7 +498,7 @@ function drawDetail(D, r) {
     const h3 = el('h3'); h3.appendChild(term('podobne', 'Najbardziej podobne ogłoszenia sprzedaży')); sec.appendChild(h3);
     sec.appendChild(el('p', 'note', 'Aktualne ogłoszenia z rynku wtórnego' + (r.og_skad ? ' (' + r.og_skad + ')' : '') + ', najbliższe metrażem. Pobrane ' + dataKr(naj[0].pobrano) + '. To ceny, jakich chcą sprzedający – transakcje zwykle zamykają się trochę niżej.'));
     const w = el('div', 'lk-tablewrap'); const t = el('table', 'lk-table plain'); const hd = el('thead'); const hr = el('tr');
-    [['Mieszkanie'], ['Cena', 'num'], ['m²', 'num'], ['zł/m²', 'num'], ['vs ta licytacja', 'num'], ['']].forEach(([n, c]) => hr.appendChild(el('th', c || null, n)));
+    [['Mieszkanie'], ['Cena', 'num'], ['m²', 'num'], ['zł/m²', 'num'], ['vs ta oferta', 'num'], ['']].forEach(([n, c]) => hr.appendChild(el('th', c || null, n)));
     hd.appendChild(hr); t.appendChild(hd);
     const tb = el('tbody');
     naj.forEach((o) => {
@@ -481,7 +520,7 @@ function drawDetail(D, r) {
   if (r.url) link(r.url, 'Ogłoszenie ↗');
   if (r.url2) link(r.url2, 'Drugie źródło ↗');
   link('https://ekw.ms.gov.pl/', 'Księgi wieczyste ↗');
-  link(r.tryb === 'e-licytacja' ? 'https://elicytacje.komornik.pl/' : 'https://licytacje.komornik.pl/', 'Portal komorników ↗');
+  if (isKom(r)) link(r.tryb === 'e-licytacja' ? 'https://elicytacje.komornik.pl/' : 'https://licytacje.komornik.pl/', 'Portal komorników ↗');
   const calc = el('button', 'lk-link', 'Policz w kalkulatorze →'); calc.dataset.go = 'kalkulator'; calc.addEventListener('click', () => { window.lkWf = r.id; });
   links.appendChild(calc);
   box.appendChild(links);
@@ -493,7 +532,7 @@ function drawLegend(box, items) {
   items.forEach(([n, c, line]) => { const it = el('span', 'lk-leg'); const sw = el('i', line ? 'line' : null); sw.style.background = c; it.append(sw, document.createTextNode(n)); box.appendChild(it); });
 }
 function drawRynek(D, rows) {
-  drawLegend(q('.lk-mkt-legend'), [['Licytacja (za całość)', dash.colors[0]], ['Udział (przeliczony)', 'var(--cds-chart-muted)'], ['Cena ofertowa', 'var(--cds-chart-reference)', 1], ['Cena transakcyjna', 'var(--color-warn)', 1], ['Podobne ogłoszenia', 'var(--color-ok)', 1]]);
+  drawLegend(q('.lk-mkt-legend'), [['Oferta (za całość)', dash.colors[0]], ['Udział (przeliczony)', 'var(--cds-chart-muted)'], ['Cena ofertowa', 'var(--cds-chart-reference)', 1], ['Cena transakcyjna', 'var(--color-warn)', 1], ['Podobne ogłoszenia', 'var(--color-ok)', 1]]);
   const box = q('.lk-chart');
   box.replaceChildren();
   const data = rows.filter((r) => r.cena_m2_calosc != null).sort((a, b) => (a.vs_ofertowa_pct ?? 999) - (b.vs_ofertowa_pct ?? 999));
@@ -526,7 +565,7 @@ function drawRynek(D, rows) {
       .attr('fill', (d) => d.vs_ofertowa_pct == null ? 'var(--color-fg-muted)' : d.vs_ofertowa_pct <= -15 ? 'var(--color-ok)' : d.vs_ofertowa_pct >= 0 ? 'var(--color-bad)' : 'var(--color-fg)').style('font-variant-numeric', 'tabular-nums').text((d) => pct(d.vs_ofertowa_pct));
     g.append('rect').attr('x', 0).attr('width', W).attr('y', (d) => y(d.id) - y.step() * y.paddingInner() / 2).attr('height', y.step()).attr('fill', 'transparent')
       .on('mousemove', (e, d) => {
-        tip.replaceChildren(el('div', 'd', label2(d)), el('div', null, 'Licytacja: ' + num(d.cena_m2_calosc) + ' zł/m²' + (d.udzial ? ' (przeliczone z udziału)' : '')), el('div', null, 'Ofertowa (gmina): ' + (d.rynek_ofertowa_m2 == null ? '—' : num(d.rynek_ofertowa_m2) + ' zł/m², ' + pct(d.vs_ofertowa_pct))), el('div', null, 'Transakcyjna (powiat, GUS 2024): ' + (d.rynek_transakcyjna_m2 == null ? '—' : num(d.rynek_transakcyjna_m2) + ' zł/m², ' + pct(d.vs_transakcyjna_pct))), el('div', null, 'Podobne ogłoszenia: ' + (d.og_mediana_m2 == null ? 'brak' : num(d.og_mediana_m2) + ' zł/m², ' + pct(d.vs_ogloszenia_pct) + ' (' + d.og_liczba + ' ogł.)')));
+        tip.replaceChildren(el('div', 'd', label2(d)), el('div', null, 'Oferta: ' + num(d.cena_m2_calosc) + ' zł/m²' + (d.udzial ? ' (przeliczone z udziału)' : '')), el('div', null, 'Ofertowa (gmina): ' + (d.rynek_ofertowa_m2 == null ? '—' : num(d.rynek_ofertowa_m2) + ' zł/m², ' + pct(d.vs_ofertowa_pct))), el('div', null, 'Transakcyjna (powiat, GUS 2024): ' + (d.rynek_transakcyjna_m2 == null ? '—' : num(d.rynek_transakcyjna_m2) + ' zł/m², ' + pct(d.vs_transakcyjna_pct))), el('div', null, 'Podobne ogłoszenia: ' + (d.og_mediana_m2 == null ? 'brak' : num(d.og_mediana_m2) + ' zł/m², ' + pct(d.vs_ogloszenia_pct) + ' (' + d.og_liczba + ' ogł.)')));
         tip.hidden = false; const [px, py] = d3.pointer(e, box);
         tip.style.left = Math.max(4, Math.min(px + 12, box.clientWidth - tip.offsetWidth - 4)) + 'px'; tip.style.top = (py + 12) + 'px';
       }).on('mouseleave', () => { tip.hidden = true; });
