@@ -7,12 +7,11 @@ Właściciel: Gabriel (GitHub: GebreI). Gdy coś jest niejasne – najpierw zapy
 ## Jak działa projekt (ważne – przeczytaj najpierw)
 - To repozytorium jest JEDYNYM źródłem kodu i danych. Strona: https://gebrei.github.io/licytacje-malopolska/ (GitHub Pages, gałąź main).
 - Dane w `data/` aktualizuje automatycznie zaplanowane zadanie w chmurze Claude („Mieszkania do 200 tys. Małopolska – aktualizacja danych w repo”), codziennie ok. 6:52. Robi commit „Aktualizacja danych RRRR-MM-DD” i push na main. Działa bez włączonego komputera.
-- Ty (Claude Code) rozwijasz wygląd i funkcje strony: `index.html`, `app.js`, `slownik.js`, `dash-shim.js`.
+- Ty (Claude Code) rozwijasz wygląd i funkcje strony: `index.html`, `app.js`, `slownik.js`.
 - ZAWSZE zacznij od `git pull` (automat codziennie dopisuje commity), a po zmianach: commit i `git push`.
 - Nie edytuj ręcznie `data/*.json`, chyba że Gabriel o to poprosi – nadpisze je poranny automat. Jeśli zmieniasz schemat danych, opisz to w tym pliku i powiedz Gabrielowi, że trzeba też zaktualizować prompt zaplanowanego zadania.
 - Dawny dashboard w aplikacji Claude to archiwum – nie jest już aktualizowany.
 - Podgląd lokalny: `python3 -m http.server 8000` w folderze repo i otwórz http://localhost:8000 (fetch plików JSON nie działa przy otwieraniu index.html bezpośrednio z dysku).
-- Pomysł na później: `dash-shim.js` to nakładka po dawnym dashboardzie – można ją usunąć i uprościć `app.js` do zwykłego ładowania JSON.
 
 ## Kryteria ofert
 Tylko mieszkania (nie lokale użytkowe, nie domy), województwo małopolskie, cena do 200 000 zł, tylko aktywne.
@@ -22,9 +21,8 @@ Rodzaje sprzedaży (pole `rodzaj` w data/licytacje.json): "komornicza", "syndyk"
 
 ## Struktura
 - `index.html` – układ i style (5 zakładek: Start, Oferty, Na tle rynku, Kalkulator zysku, Poradnik). Tokeny kolorów jasny/ciemny na górze.
-- `app.js` – cała logika: obliczenia (`dash.calc`), ocena ofert, karta oferty, wykresy d3, kalkulator kupna/remontu/sprzedaży, maksymalna cena.
+- `app.js` – cała logika: wczytanie `data/*.json` (`wczytajDane`, wyniki w obiekcie `DATA`), obliczenia (`calcPorownanie`, `calcPodsumowanie`, `calcTrendCen`, `calcPodobne`), ocena ofert, karta oferty, wykresy d3, kalkulator kupna/remontu/sprzedaży, maksymalna cena.
 - `slownik.js` – słownik pojęć (`window.LK_SLOWNIK`), używany przez podpowiedzi `data-t="klucz"`.
-- `dash-shim.js` – mały zamiennik API `dash` (ładuje `data/*.json`, liczy `dash.calc`, wywołuje `dash.onData`). Dzięki niemu strona działa bez Claude.
 - `data/` – dane (JSON, tablice obiektów). Zmieniaj TYLKO dane przy codziennej aktualizacji.
 - d3 v7 z cdnjs.
 

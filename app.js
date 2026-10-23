@@ -1,97 +1,86 @@
-// ===== Obliczenia z danych (widoczne w panelu Sources) =====
-dash.calc('porownanie', {
-  inputs: ['licytacje', 'ceny_rynkowe'],
-  title: 'Porównanie z rynkiem',
-  description: 'Cena wywołania za m² (udział przeliczony na całe mieszkanie) wobec ceny ofertowej w gminie i transakcyjnej w powiecie.',
-  fn: (licytacje, ceny_rynkowe) => licytacje.map((r) => {
-    const rynek = ceny_rynkowe.find((c) => c.miejscowosc === r.miejscowosc) || {};
-    const [a, b] = String(r.udzial || '1/1').split('/').map(Number);
-    const czesc = a && b ? a / b : 1;
-    const m2calosc = Number(r.cena) / czesc / Number(r.m2);
-    const of = rynek.ofertowa_m2 == null ? null : Number(rynek.ofertowa_m2);
-    const tr = rynek.transakcyjna_m2 == null || Number(rynek.transakcyjna_m2) === 0 ? null : Number(rynek.transakcyjna_m2);
-    return {
-      id: r.id,
-      cena_m2_calosc: Math.round(m2calosc),
-      rynek_ofertowa_m2: of,
-      rynek_transakcyjna_m2: tr,
-      vs_ofertowa_pct: of ? Math.round((m2calosc / of - 1) * 100) : null,
-      vs_transakcyjna_pct: tr ? Math.round((m2calosc / tr - 1) * 100) : null,
-      wartosc_rynkowa_ofertowa: of ? Math.round(of * Number(r.m2) * czesc) : null,
-    };
-  }),
+// ===== Obliczenia z danych =====
+// Porównanie z rynkiem: cena wywołania za m² (udział przeliczony na całe mieszkanie)
+// wobec ceny ofertowej w gminie i transakcyjnej w powiecie.
+const calcPorownanie = (licytacje, ceny_rynkowe) => licytacje.map((r) => {
+  const rynek = ceny_rynkowe.find((c) => c.miejscowosc === r.miejscowosc) || {};
+  const [a, b] = String(r.udzial || '1/1').split('/').map(Number);
+  const czesc = a && b ? a / b : 1;
+  const m2calosc = Number(r.cena) / czesc / Number(r.m2);
+  const of = rynek.ofertowa_m2 == null ? null : Number(rynek.ofertowa_m2);
+  const tr = rynek.transakcyjna_m2 == null || Number(rynek.transakcyjna_m2) === 0 ? null : Number(rynek.transakcyjna_m2);
+  return {
+    id: r.id,
+    cena_m2_calosc: Math.round(m2calosc),
+    rynek_ofertowa_m2: of,
+    rynek_transakcyjna_m2: tr,
+    vs_ofertowa_pct: of ? Math.round((m2calosc / of - 1) * 100) : null,
+    vs_transakcyjna_pct: tr ? Math.round((m2calosc / tr - 1) * 100) : null,
+    wartosc_rynkowa_ofertowa: of ? Math.round(of * Number(r.m2) * czesc) : null,
+  };
 });
 
-dash.calc('podsumowanie', {
-  inputs: ['licytacje', 'porownanie'],
-  title: 'Podsumowanie ofert',
-  description: 'Liczba ofert, najtańsze całe mieszkanie, najniższa cena za m², najbliższa licytacja i mediana różnicy do cen ofertowych.',
-  fn: (licytacje, porownanie) => {
-    const cale = licytacje.filter((r) => r.typ === 'Całe mieszkanie');
-    const daty = licytacje.map((r) => r.termin).filter(Boolean).sort();
-    const roznice = porownanie.filter((p) => p.vs_ofertowa_pct != null && cale.some((r) => r.id === p.id)).map((p) => p.vs_ofertowa_pct).sort((x, y) => x - y);
-    const mid = Math.floor(roznice.length / 2);
-    return [
-      { metryka: 'liczba', wartosc: licytacje.length },
-      { metryka: 'min_cena_cale', wartosc: cale.length ? Math.min(...cale.map((r) => Number(r.cena))) : null },
-      { metryka: 'min_m2_cale', wartosc: cale.length ? Math.min(...cale.map((r) => Number(r.cena_m2))) : null },
-      { metryka: 'najblizszy', wartosc: daty.length ? daty[0] : null },
-      { metryka: 'mediana_vs_ofertowa', wartosc: roznice.length ? (roznice.length % 2 ? roznice[mid] : Math.round((roznice[mid - 1] + roznice[mid]) / 2)) : null },
-    ];
-  },
+// Podsumowanie ofert: liczba ofert, najtańsze całe mieszkanie, najniższa cena za m²,
+// najbliższa licytacja i mediana różnicy do cen ofertowych.
+const calcPodsumowanie = (licytacje, porownanie) => {
+  const cale = licytacje.filter((r) => r.typ === 'Całe mieszkanie');
+  const daty = licytacje.map((r) => r.termin).filter(Boolean).sort();
+  const roznice = porownanie.filter((p) => p.vs_ofertowa_pct != null && cale.some((r) => r.id === p.id)).map((p) => p.vs_ofertowa_pct).sort((x, y) => x - y);
+  const mid = Math.floor(roznice.length / 2);
+  return [
+    { metryka: 'liczba', wartosc: licytacje.length },
+    { metryka: 'min_cena_cale', wartosc: cale.length ? Math.min(...cale.map((r) => Number(r.cena))) : null },
+    { metryka: 'min_m2_cale', wartosc: cale.length ? Math.min(...cale.map((r) => Number(r.cena_m2))) : null },
+    { metryka: 'najblizszy', wartosc: daty.length ? daty[0] : null },
+    { metryka: 'mediana_vs_ofertowa', wartosc: roznice.length ? (roznice.length % 2 ? roznice[mid] : Math.round((roznice[mid - 1] + roznice[mid]) / 2)) : null },
+  ];
+};
+
+// Trend cen – 10 lat: dla każdego powiatu mediana ceny za m² w pierwszym i ostatnim roku, wzrost łączny,
+// średni roczny, zmiana w ostatnim roku i wiarygodność wg liczby transakcji.
+const calcTrendCen = (historia_cen) => [...new Set(historia_cen.map((r) => r.powiat))].map((powiat) => {
+  const h = historia_cen.filter((r) => r.powiat === powiat).sort((a, b) => a.rok - b.rok);
+  const first = h[0], last = h[h.length - 1], prev = h[h.length - 2];
+  const lat = last.rok - first.rok;
+  const n = h.map((r) => r.transakcje).filter((x) => x != null);
+  const minN = n.length ? Math.min(...n) : null;
+  return {
+    powiat, obszar: last.obszar, rok_od: first.rok, rok_do: last.rok,
+    cena_2015: Number(first.mediana_m2), cena_2024: Number(last.mediana_m2),
+    wzrost_10l_pct: Math.round((last.mediana_m2 / first.mediana_m2 - 1) * 100),
+    srednio_rocznie_pct: Math.round((Math.pow(last.mediana_m2 / first.mediana_m2, 1 / lat) - 1) * 1000) / 10,
+    zmiana_rr_pct: prev ? Math.round((last.mediana_m2 / prev.mediana_m2 - 1) * 100) : null,
+    transakcje_2024: last.transakcje == null ? null : Number(last.transakcje),
+    wiarygodnosc: minN == null || minN < 30 || last.transakcje == null ? 'niska' : minN < 100 ? 'średnia' : 'wysoka',
+  };
 });
 
-dash.calc('trend_cen', {
-  inputs: ['historia_cen'],
-  title: 'Trend cen – 10 lat',
-  description: 'Dla każdego powiatu: mediana ceny za m² w pierwszym i ostatnim roku, wzrost łączny, średni roczny, zmiana w ostatnim roku i wiarygodność wg liczby transakcji.',
-  fn: (historia_cen) => [...new Set(historia_cen.map((r) => r.powiat))].map((powiat) => {
-    const h = historia_cen.filter((r) => r.powiat === powiat).sort((a, b) => a.rok - b.rok);
-    const first = h[0], last = h[h.length - 1], prev = h[h.length - 2];
-    const lat = last.rok - first.rok;
-    const n = h.map((r) => r.transakcje).filter((x) => x != null);
-    const minN = n.length ? Math.min(...n) : null;
-    return {
-      powiat, obszar: last.obszar, rok_od: first.rok, rok_do: last.rok,
-      cena_2015: Number(first.mediana_m2), cena_2024: Number(last.mediana_m2),
-      wzrost_10l_pct: Math.round((last.mediana_m2 / first.mediana_m2 - 1) * 100),
-      srednio_rocznie_pct: Math.round((Math.pow(last.mediana_m2 / first.mediana_m2, 1 / lat) - 1) * 1000) / 10,
-      zmiana_rr_pct: prev ? Math.round((last.mediana_m2 / prev.mediana_m2 - 1) * 100) : null,
-      transakcje_2024: last.transakcje == null ? null : Number(last.transakcje),
-      wiarygodnosc: minN == null || minN < 30 || last.transakcje == null ? 'niska' : minN < 100 ? 'średnia' : 'wysoka',
-    };
-  }),
-});
-
-dash.calc('podobne', {
-  inputs: ['licytacje', 'ogloszenia'],
-  title: 'Podobne ogłoszenia sprzedaży',
-  description: 'Dla każdej oferty: ogłoszenia z rynku wtórnego z tej samej miejscowości o metrażu ±30% (gdy jest ich mniej niż 3 – wszystkie z miejscowości), ich mediana ceny za m² i różnica do ceny wywołania za m² za całość.',
-  fn: (licytacje, ogloszenia) => licytacje.map((r) => {
-    const [a, b] = String(r.udzial || '1/1').split('/').map(Number);
-    const czesc = a && b ? a / b : 1;
-    const m2calosc = Number(r.cena) / czesc / Number(r.m2);
-    const pula = ogloszenia.filter((o) => o.obszar === r.miejscowosc && o.rynek !== 'pierwotny' && o.id !== r.id && o.url !== r.url && o.url !== r.url2);
-    let podobne = pula.filter((o) => Math.abs(Number(o.m2) / Number(r.m2) - 1) <= 0.3);
-    let dopasowanie = 'metraż ±30%';
-    if (podobne.length < 3) { podobne = pula; dopasowanie = pula.length ? 'cała miejscowość' : 'brak ogłoszeń'; }
-    const ceny = podobne.map((o) => Number(o.cena_m2)).sort((x, y) => x - y);
-    const s = Math.floor(ceny.length / 2);
-    const mediana = ceny.length ? (ceny.length % 2 ? ceny[s] : Math.round((ceny[s - 1] + ceny[s]) / 2)) : null;
-    const najblizsze = podobne.slice().sort((x, y) => Math.abs(x.m2 - r.m2) - Math.abs(y.m2 - r.m2)).slice(0, 5).map((o) => o.id);
-    return {
-      id: r.id,
-      og_liczba: podobne.length,
-      og_dopasowanie: dopasowanie,
-      og_skad: [...new Set(podobne.map((o) => o.miejscowosc))].join(', '),
-      og_mediana_m2: mediana,
-      og_min_m2: ceny.length ? ceny[0] : null,
-      og_max_m2: ceny.length ? ceny[ceny.length - 1] : null,
-      vs_ogloszenia_pct: mediana ? Math.round((m2calosc / mediana - 1) * 100) : null,
-      og_wartosc: mediana ? Math.round(mediana * Number(r.m2) * czesc) : null,
-      og_najblizsze: najblizsze.join(','),
-    };
-  }),
+// Podobne ogłoszenia sprzedaży: dla każdej oferty ogłoszenia z rynku wtórnego z tej samej miejscowości
+// o metrażu ±30% (gdy jest ich mniej niż 3 – wszystkie z miejscowości), ich mediana ceny za m²
+// i różnica do ceny wywołania za m² za całość.
+const calcPodobne = (licytacje, ogloszenia) => licytacje.map((r) => {
+  const [a, b] = String(r.udzial || '1/1').split('/').map(Number);
+  const czesc = a && b ? a / b : 1;
+  const m2calosc = Number(r.cena) / czesc / Number(r.m2);
+  const pula = ogloszenia.filter((o) => o.obszar === r.miejscowosc && o.rynek !== 'pierwotny' && o.id !== r.id && o.url !== r.url && o.url !== r.url2);
+  let podobne = pula.filter((o) => Math.abs(Number(o.m2) / Number(r.m2) - 1) <= 0.3);
+  let dopasowanie = 'metraż ±30%';
+  if (podobne.length < 3) { podobne = pula; dopasowanie = pula.length ? 'cała miejscowość' : 'brak ogłoszeń'; }
+  const ceny = podobne.map((o) => Number(o.cena_m2)).sort((x, y) => x - y);
+  const s = Math.floor(ceny.length / 2);
+  const mediana = ceny.length ? (ceny.length % 2 ? ceny[s] : Math.round((ceny[s - 1] + ceny[s]) / 2)) : null;
+  const najblizsze = podobne.slice().sort((x, y) => Math.abs(x.m2 - r.m2) - Math.abs(y.m2 - r.m2)).slice(0, 5).map((o) => o.id);
+  return {
+    id: r.id,
+    og_liczba: podobne.length,
+    og_dopasowanie: dopasowanie,
+    og_skad: [...new Set(podobne.map((o) => o.miejscowosc))].join(', '),
+    og_mediana_m2: mediana,
+    og_min_m2: ceny.length ? ceny[0] : null,
+    og_max_m2: ceny.length ? ceny[ceny.length - 1] : null,
+    vs_ogloszenia_pct: mediana ? Math.round((m2calosc / mediana - 1) * 100) : null,
+    og_wartosc: mediana ? Math.round(mediana * Number(r.m2) * czesc) : null,
+    og_najblizsze: najblizsze.join(','),
+  };
 });
 
 // ===== Pomocnicze =====
@@ -116,7 +105,8 @@ const nazwaWadium = (r) => isKom(r) ? 'Termin wpłaty rękojmi' : 'Termin wpłat
 const nazwaCeny = (r) => isKom(r) ? 'Cena wywołania' : isOgl(r) ? 'Cena ofertowa' : 'Cena wywoławcza';
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
 const term = (key, txt) => { const s = el('span', 't', txt || (S[key] ? S[key][0] : key)); s.dataset.t = key; s.tabIndex = 0; return s; };
-const segColor = (i) => dash.colors[i % dash.colors.length];
+const KOLORY = ['var(--s0)', 'var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)', 'var(--s7)'];
+const segColor = (i) => KOLORY[i % KOLORY.length];
 const label2 = (r) => r.miejscowosc + (r.lokalizacja ? ', ' + r.lokalizacja.replace(/\s*\(.*\)/, '') : '') + (r.udzial ? ' (udział ' + r.udzial + ')' : '');
 
 // ===== Podpowiedzi (hover / dotknięcie) =====
@@ -162,7 +152,7 @@ function goTab(id, scroll) {
   window.lkTab = id;
   qa('.lk-tabs button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === id)));
   TABS.forEach((t) => { q('#' + t).hidden = t !== id; });
-  dash.setLink(id);
+  try { history.replaceState(null, '', '#' + id); } catch (e) { /* ignore */ }
   hideTip();
   window.lkDraw && window.lkDraw();
   if (scroll) q('.lk-tabs').scrollIntoView({ block: 'start' });
@@ -289,23 +279,37 @@ const badge = (o) => { const b = el('span', 'lk-badge ' + o.k, o.txt); b.dataset
 const isNew = (r) => { const d = dni(r.dodano); return d != null && d >= -3; };
 
 // ===== Dane =====
+// Pliki z data/ wczytywane przy starcie; po wczytaniu w DATA są też wyniki obliczeń (porownanie, podsumowanie, trend_cen, podobne).
+const PLIKI = ['licytacje', 'ceny_rynkowe', 'koszty_stawki', 'historia_cen', 'ogloszenia'];
+const DATA = { status: 'loading' };
+function wczytajDane() {
+  return Promise.all(PLIKI.map((id) => fetch('data/' + id + '.json', { cache: 'no-cache' })
+    .then((r) => { if (!r.ok) throw new Error('data/' + id + '.json: ' + r.status); return r.json(); })
+    .then((j) => { DATA[id] = Array.isArray(j) ? j : (j.rows || j.data || j); })))
+    .then(() => {
+      DATA.porownanie = calcPorownanie(DATA.licytacje, DATA.ceny_rynkowe);
+      DATA.podsumowanie = calcPodsumowanie(DATA.licytacje, DATA.porownanie);
+      DATA.trend_cen = calcTrendCen(DATA.historia_cen);
+      DATA.podobne = calcPodobne(DATA.licytacje, DATA.ogloszenia);
+      DATA.status = 'ok';
+    })
+    .catch((e) => { DATA.status = 'error'; console.error(e); });
+}
 function dataset() {
-  const d = dash.data('licytacje'), p = dash.data('porownanie'), sd = dash.data('koszty_stawki'), c = dash.data('ceny_rynkowe'), hi = dash.data('historia_cen'), tc = dash.data('trend_cen'), og = dash.data('ogloszenia'), pd = dash.data('podobne');
-  const all = [d, p, sd, c, hi, tc, og, pd];
-  const status = all.some((x) => x.status === 'error') ? 'error' : all.every((x) => x.status === 'ok') ? 'ok' : 'loading';
+  const status = DATA.status;
   if (status !== 'ok') return { status };
-  const por = new Map((Array.isArray(p.data) ? p.data : []).map((x) => [x.id, x]));
-  const pod = new Map((Array.isArray(pd.data) ? pd.data : []).map((x) => [x.id, x]));
-  const st = Object.fromEntries(sd.data.map((x) => [x.klucz, Number(x.wartosc)]));
-  const rows = d.data.map((r) => ({ ...r, cena: Number(r.cena), m2: Number(r.m2), cena_m2: Number(r.cena_m2), pokoje: r.pokoje == null ? null : Number(r.pokoje), ...(por.get(r.id) || {}), ...(pod.get(r.id) || {}) }));
-  const trend = Array.isArray(tc.data) ? tc.data : [];
+  const por = new Map(DATA.porownanie.map((x) => [x.id, x]));
+  const pod = new Map(DATA.podobne.map((x) => [x.id, x]));
+  const st = Object.fromEntries(DATA.koszty_stawki.map((x) => [x.klucz, Number(x.wartosc)]));
+  const rows = DATA.licytacje.map((r) => ({ ...r, cena: Number(r.cena), m2: Number(r.m2), cena_m2: Number(r.cena_m2), pokoje: r.pokoje == null ? null : Number(r.pokoje), ...(por.get(r.id) || {}), ...(pod.get(r.id) || {}) }));
+  const trend = DATA.trend_cen;
   rows.forEach((r) => {
-    const cr = c.data.find((x) => x.miejscowosc === r.miejscowosc);
+    const cr = DATA.ceny_rynkowe.find((x) => x.miejscowosc === r.miejscowosc);
     r.powiat = cr ? cr.powiat : null;
     r.trend = r.powiat ? trend.find((t) => t.powiat === r.powiat) || null : null;
     r.f = flip(r, st); r.fl = flagi(r, r.f); r.oc = ocena(r.fl);
   });
-  return { status, rows, st, ceny: c.data, hist: hi.data, trend, ogl: og.data };
+  return { status, rows, st, ceny: DATA.ceny_rynkowe, hist: DATA.historia_cen, trend, ogl: DATA.ogloszenia };
 }
 function filtered(rows) {
   const v = (x) => x.value === '' ? null : Number(x.value);
@@ -532,7 +536,7 @@ function drawLegend(box, items) {
   items.forEach(([n, c, line]) => { const it = el('span', 'lk-leg'); const sw = el('i', line ? 'line' : null); sw.style.background = c; it.append(sw, document.createTextNode(n)); box.appendChild(it); });
 }
 function drawRynek(D, rows) {
-  drawLegend(q('.lk-mkt-legend'), [['Oferta (za całość)', dash.colors[0]], ['Udział (przeliczony)', 'var(--cds-chart-muted)'], ['Cena ofertowa', 'var(--cds-chart-reference)', 1], ['Cena transakcyjna', 'var(--color-warn)', 1], ['Podobne ogłoszenia', 'var(--color-ok)', 1]]);
+  drawLegend(q('.lk-mkt-legend'), [['Oferta (za całość)', KOLORY[0]], ['Udział (przeliczony)', 'var(--cds-chart-muted)'], ['Cena ofertowa', 'var(--cds-chart-reference)', 1], ['Cena transakcyjna', 'var(--color-warn)', 1], ['Podobne ogłoszenia', 'var(--color-ok)', 1]]);
   const box = q('.lk-chart');
   box.replaceChildren();
   const data = rows.filter((r) => r.cena_m2_calosc != null).sort((a, b) => (a.vs_ofertowa_pct ?? 999) - (b.vs_ofertowa_pct ?? 999));
@@ -556,7 +560,7 @@ function drawRynek(D, rows) {
     const tip = el('div', 'lk-tip'); tip.hidden = true; box.appendChild(tip);
     const g = svg.append('g').selectAll('g').data(data).join('g');
     g.append('text').attr('x', m.l - 8).attr('y', (d) => y(d.id) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(label);
-    g.append('rect').attr('x', m.l).attr('y', (d) => y(d.id)).attr('height', y.bandwidth()).attr('rx', 4).attr('width', (d) => Math.max(2, x(d.cena_m2_calosc) - m.l)).attr('fill', (d) => d.typ === 'Udział' ? 'var(--cds-chart-muted)' : dash.colors[0]);
+    g.append('rect').attr('x', m.l).attr('y', (d) => y(d.id)).attr('height', y.bandwidth()).attr('rx', 4).attr('width', (d) => Math.max(2, x(d.cena_m2_calosc) - m.l)).attr('fill', (d) => d.typ === 'Udział' ? 'var(--cds-chart-muted)' : KOLORY[0]);
     const tick = (key, color) => g.filter((d) => d[key] != null).append('line').attr('x1', (d) => x(d[key])).attr('x2', (d) => x(d[key])).attr('y1', (d) => y(d.id) - 4).attr('y2', (d) => y(d.id) + y.bandwidth() + 4).attr('stroke', color).attr('stroke-width', 3).attr('stroke-linecap', 'round');
     tick('rynek_ofertowa_m2', 'var(--cds-chart-reference)');
     tick('rynek_transakcyjna_m2', 'var(--color-warn)');
@@ -836,9 +840,8 @@ window.lkDraw = () => {
   q('.a-rm2-wrap').hidden = A.rmode.value !== 'm2';
   q('.a-rkw-wrap').hidden = A.rmode.value !== 'kwota';
 
-  const s = dash.data('podsumowanie');
-  if (s.status === 'ok' && Array.isArray(s.data)) {
-    const v = Object.fromEntries(s.data.map((x) => [x.metryka, x.wartosc]));
+  if (DATA.status === 'ok') {
+    const v = Object.fromEntries(DATA.podsumowanie.map((x) => [x.metryka, x.wartosc]));
     const set = (f, t) => { const x = q(`[data-source="podsumowanie"][data-where="metryka=${f}"]`); x.classList.remove('dash-skeleton'); x.textContent = t; };
     set('liczba', num(v.liczba));
     set('min_cena_cale', zl(v.min_cena_cale));
@@ -849,7 +852,7 @@ window.lkDraw = () => {
 
   const D = dataset();
   const fr = q('.lk-fresh-txt');
-  if (D.status === 'error') { fr.textContent = 'Nie udało się wczytać części danych – szczegóły w panelu Sources.'; ['.lk-tops', '.lk-dates', '.lk-detail', '.lk-chart', '.lk-flip', '.lk-max', '.lk-wf', '.lk-hist'].forEach((x) => fail(q(x))); return; }
+  if (D.status === 'error') { fr.textContent = 'Nie udało się wczytać części danych – szczegóły w konsoli przeglądarki.'; ['.lk-tops', '.lk-dates', '.lk-detail', '.lk-chart', '.lk-flip', '.lk-max', '.lk-wf', '.lk-hist'].forEach((x) => fail(q(x))); return; }
   if (D.status !== 'ok') return;
 
   const spr = D.rows.map((r) => r.sprawdzono).filter(Boolean).sort().pop();
@@ -870,6 +873,9 @@ window.lkDraw = () => {
   if (tab === 'kalkulator') drawFlip(D, rows);
 };
 
-dash.onData(() => window.lkDraw());
+window.lkDraw();
+wczytajDane().then(() => window.lkDraw());
+let resizeT;
+window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => window.lkDraw(), 150); });
 const hash = location.hash.slice(1);
 if (TABS.includes(hash)) goTab(hash);
