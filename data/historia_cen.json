@@ -2,13 +2,6 @@
  {
   "powiat": "chrzanowski",
   "obszar": "powiat chrzanowski",
-  "rok": 2015,
-  "mediana_m2": 2658,
-  "transakcje": 205
- },
- {
-  "powiat": "chrzanowski",
-  "obszar": "powiat chrzanowski",
   "rok": 2016,
   "mediana_m2": 2591,
   "transakcje": 284
@@ -70,11 +63,11 @@
   "transakcje": 373
  },
  {
-  "powiat": "olkuski",
-  "obszar": "powiat olkuski",
-  "rok": 2015,
-  "mediana_m2": 2587,
-  "transakcje": 188
+  "powiat": "chrzanowski",
+  "obszar": "powiat chrzanowski",
+  "rok": 2025,
+  "mediana_m2": 5802,
+  "transakcje": 398
  },
  {
   "powiat": "olkuski",
@@ -140,11 +133,11 @@
   "transakcje": 238
  },
  {
-  "powiat": "nowotarski",
-  "obszar": "powiat nowotarski",
-  "rok": 2015,
-  "mediana_m2": 3858,
-  "transakcje": 64
+  "powiat": "olkuski",
+  "obszar": "powiat olkuski",
+  "rok": 2025,
+  "mediana_m2": 5769,
+  "transakcje": 207
  },
  {
   "powiat": "nowotarski",
@@ -210,11 +203,11 @@
   "transakcje": 131
  },
  {
-  "powiat": "krakowski",
-  "obszar": "powiat krakowski",
-  "rok": 2015,
-  "mediana_m2": 4113,
-  "transakcje": 137
+  "powiat": "nowotarski",
+  "obszar": "powiat nowotarski",
+  "rok": 2025,
+  "mediana_m2": 9015,
+  "transakcje": 141
  },
  {
   "powiat": "krakowski",
@@ -280,11 +273,11 @@
   "transakcje": 304
  },
  {
-  "powiat": "proszowicki",
-  "obszar": "powiat proszowicki",
-  "rok": 2015,
-  "mediana_m2": 3381,
-  "transakcje": 14
+  "powiat": "krakowski",
+  "obszar": "powiat krakowski",
+  "rok": 2025,
+  "mediana_m2": 10129,
+  "transakcje": 305
  },
  {
   "powiat": "proszowicki",
@@ -350,11 +343,11 @@
   "transakcje": null
  },
  {
-  "powiat": "myślenicki",
-  "obszar": "powiat myślenicki",
-  "rok": 2015,
-  "mediana_m2": 4445,
-  "transakcje": 45
+  "powiat": "proszowicki",
+  "obszar": "powiat proszowicki",
+  "rok": 2025,
+  "mediana_m2": 7300,
+  "transakcje": null
  },
  {
   "powiat": "myślenicki",
@@ -420,11 +413,11 @@
   "transakcje": 69
  },
  {
-  "powiat": "limanowski",
-  "obszar": "powiat limanowski",
-  "rok": 2015,
-  "mediana_m2": 2912,
-  "transakcje": 40
+  "powiat": "myślenicki",
+  "obszar": "powiat myślenicki",
+  "rok": 2025,
+  "mediana_m2": 8551,
+  "transakcje": 77
  },
  {
   "powiat": "limanowski",
@@ -490,11 +483,11 @@
   "transakcje": 52
  },
  {
-  "powiat": "małopolskie",
-  "obszar": "woj. małopolskie (z Krakowem)",
-  "rok": 2015,
-  "mediana_m2": 4923,
-  "transakcje": 5851
+  "powiat": "limanowski",
+  "obszar": "powiat limanowski",
+  "rok": 2025,
+  "mediana_m2": 5923,
+  "transakcje": 39
  },
  {
   "powiat": "małopolskie",
@@ -560,11 +553,11 @@
   "transakcje": 9749
  },
  {
-  "powiat": "bocheński",
-  "obszar": "powiat bocheński",
-  "rok": 2015,
-  "mediana_m2": 3375,
-  "transakcje": 74
+  "powiat": "małopolskie",
+  "obszar": "woj. małopolskie (z Krakowem)",
+  "rok": 2025,
+  "mediana_m2": 12271,
+  "transakcje": 9823
  },
  {
   "powiat": "bocheński",
@@ -630,11 +623,11 @@
   "transakcje": 93
  },
  {
-  "powiat": "nowosądecki",
-  "obszar": "powiat nowosądecki",
-  "rok": 2015,
-  "mediana_m2": 2737,
-  "transakcje": 152
+  "powiat": "bocheński",
+  "obszar": "powiat bocheński",
+  "rok": 2025,
+  "mediana_m2": 8723,
+  "transakcje": 107
  },
  {
   "powiat": "nowosądecki",
@@ -700,11 +693,11 @@
   "transakcje": 149
  },
  {
-  "powiat": "m. Kraków",
-  "obszar": "powiat m. Kraków",
-  "rok": 2015,
-  "mediana_m2": 5787,
-  "transakcje": 3756
+  "powiat": "nowosądecki",
+  "obszar": "powiat nowosądecki",
+  "rok": 2025,
+  "mediana_m2": 6350,
+  "transakcje": 206
  },
  {
   "powiat": "m. Kraków",
@@ -770,11 +763,11 @@
   "transakcje": 6081
  },
  {
-  "powiat": "m. Tarnów",
-  "obszar": "powiat m. Tarnów",
-  "rok": 2015,
-  "mediana_m2": 2827,
-  "transakcje": 260
+  "powiat": "m. Kraków",
+  "obszar": "powiat m. Kraków",
+  "rok": 2025,
+  "mediana_m2": 14368,
+  "transakcje": 6075
  },
  {
   "powiat": "m. Tarnów",
@@ -838,5 +831,12 @@
   "rok": 2024,
   "mediana_m2": 6182,
   "transakcje": 427
+ },
+ {
+  "powiat": "m. Tarnów",
+  "obszar": "powiat m. Tarnów",
+  "rok": 2025,
+  "mediana_m2": 6276,
+  "transakcje": 405
  }
 ]
