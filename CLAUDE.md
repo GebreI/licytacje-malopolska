@@ -6,7 +6,8 @@ Właściciel: Gabriel (GitHub: GebreI). Gdy coś jest niejasne – najpierw zapy
 
 ## Jak działa projekt (ważne – przeczytaj najpierw)
 - To repozytorium jest JEDYNYM źródłem kodu i danych. Strona: https://gebrei.github.io/licytacje-malopolska/ (GitHub Pages, gałąź main).
-- Dane w `data/` aktualizuje automatycznie zaplanowane zadanie w chmurze Claude („Mieszkania do 200 tys. Małopolska – aktualizacja danych w repo”), codziennie ok. 6:52. Robi commit „Aktualizacja danych RRRR-MM-DD” i push na main. Działa bez włączonego komputera.
+- Dane w `data/` aktualizuje automatycznie zaplanowane zadanie w chmurze Claude („Mieszkania do 200 tys. Małopolska – aktualizacja danych (repo)”), codziennie ok. 6:52. Robi commit „Aktualizacja danych RRRR-MM-DD” i push na main. Działa bez włączonego komputera.
+- Pełna instrukcja automatu jest w `AUTOMAT.md` – zadanie czyta ten plik przy każdym przebiegu. Zmiana działania automatu = zmiana `AUTOMAT.md` + commit i push (nie trzeba edytować zadania w aplikacji). Przy zmianie kryteriów lub schematu danych zaktualizuj i ten plik, i `AUTOMAT.md`.
 - Ty (Claude Code) rozwijasz wygląd i funkcje strony: `index.html`, `app.js`, `slownik.js`.
 - ZAWSZE zacznij od `git pull` (automat codziennie dopisuje commity), a po zmianach: commit i `git push`.
 - Po każdej zmianie `app.js` lub `slownik.js` podbij wersję w `index.html` (`<script src="app.js?v=RRRR-MM-DD">`, to samo dla `slownik.js`) na dzisiejszą datę; przy kolejnej zmianie tego samego dnia dopisz `-2`, `-3`… Bez tego przeglądarki przez ok. 10 minut trzymają starą kopię pliku i strona może się nie wczytać. Zmiany samych danych w `data/` tego nie wymagają.
