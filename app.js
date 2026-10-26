@@ -161,7 +161,7 @@ qa('.lk-tabs button').forEach((b) => b.addEventListener('click', () => goTab(b.d
 root.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g) { if (g.dataset.sel) window.lkSel = g.dataset.sel; goTab(g.dataset.go, true); } });
 
 // ===== Filtry ofert =====
-const F = { ocena: q('.f-ocena'), rodzaj: q('.f-rodzaj'), cena: q('.f-cena'), m2min: q('.f-m2min'), m2max: q('.f-m2max'), zlm2: q('.f-zlm2'), od: q('.f-od'), do: q('.f-do') };
+const F = { ocena: q('.f-ocena'), moje: q('.f-moje'), rodzaj: q('.f-rodzaj'), cena: q('.f-cena'), m2min: q('.f-m2min'), m2max: q('.f-m2max'), zlm2: q('.f-zlm2'), od: q('.f-od'), do: q('.f-do') };
 F.cena.value = 200000;
 Object.values(F).forEach((x) => { x.addEventListener('input', () => window.lkDraw()); x.addEventListener('change', () => window.lkDraw()); });
 q('.f-reset').addEventListener('click', () => { Object.values(F).forEach((x) => { x.value = ''; }); F.cena.value = 200000; window.lkDraw(); });
@@ -320,6 +320,10 @@ function filtered(rows) {
     if (F.ocena.value === 'green' && r.oc.k !== 'green') return false;
     if (F.ocena.value === 'greenyellow' && r.oc.k === 'red') return false;
     if (F.rodzaj && F.rodzaj.value && rodz(r) !== F.rodzaj.value) return false;
+    const mj = moje(r.id);
+    if (F.moje.value === 'gw' && !mj.gw) return false;
+    if (F.moje.value === 'bez_odrz' && mj.odrz) return false;
+    if (F.moje.value === 'odrz' && !mj.odrz) return false;
     if (cena != null && r.cena > cena) return false;
     if (m2min != null && r.m2 < m2min) return false;
     if (m2max != null && r.m2 > m2max) return false;
@@ -372,6 +376,33 @@ function drawStart(D) {
   if (!box.childNodes.length) box.appendChild(el('div', 'lk-empty', 'Brak terminów w najbliższych 60 dniach.'));
 }
 
+// ===== Moje oznaczenia: obserwowane, odrzucone, komentarz (zapis tylko w tej przeglądarce) =====
+const MOJE_KEY = 'lk-moje-v1';
+const MOJE = (() => { try { return JSON.parse(localStorage.getItem(MOJE_KEY)) || {}; } catch (e) { return {}; } })();
+const moje = (id) => MOJE[id] || {};
+function zapiszMoje(id, zmiany) {
+  const m = { ...moje(id), ...zmiany };
+  if (!m.gw && !m.odrz && !(m.kom || '').trim()) delete MOJE[id]; else MOJE[id] = m;
+  try { localStorage.setItem(MOJE_KEY, JSON.stringify(MOJE)); } catch (e) { /* np. tryb prywatny – zostaje do zamknięcia karty */ }
+}
+const MARK = {
+  gw: { on: '★', off: '☆', tOn: 'Obserwujesz – kliknij, żeby przestać', tOff: 'Obserwuj' },
+  odrz: { on: '✕', off: '✕', tOn: 'Odrzucona – kliknij, żeby cofnąć', tOff: 'Oznacz jako odrzuconą' },
+};
+const markBtn = (r, k) => {
+  const on = !!moje(r.id)[k], m = MARK[k];
+  const b = el('button', 'lk-mark ' + k + (on ? ' on' : ''), on ? m.on : m.off);
+  b.type = 'button'; b.dataset.mark = k; b.dataset.id = r.id; b.title = on ? m.tOn : m.tOff;
+  b.setAttribute('aria-label', b.title); b.setAttribute('aria-pressed', String(on));
+  return b;
+};
+root.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-mark]');
+  if (!b) return;
+  zapiszMoje(b.dataset.id, { [b.dataset.mark]: !moje(b.dataset.id)[b.dataset.mark] });
+  window.lkDraw();
+});
+
 // ===== OFERTY =====
 window.lkSort = window.lkSort || { k: 'ocena', dir: 1 };
 qa('.lk-offers th button[data-sort]').forEach((b) => b.addEventListener('click', () => {
@@ -380,7 +411,7 @@ qa('.lk-offers th button[data-sort]').forEach((b) => b.addEventListener('click',
   window.lkDraw();
 }));
 q('.lk-offers tbody').addEventListener('click', (e) => {
-  if (e.target.closest('a,.t,.lk-badge')) return;
+  if (e.target.closest('a,.t,.lk-badge,[data-mark]')) return;
   const tr = e.target.closest('tr[data-key]');
   if (tr) { window.lkSel = tr.dataset.key; window.lkDraw(); q('#karta-oferty').scrollIntoView({ block: 'nearest' }); }
 });
@@ -400,17 +431,22 @@ function drawOferty(D, rows) {
   tb.replaceChildren(...sorted.map((r) => {
     const tr = document.createElement('tr');
     tr.dataset.key = r.id;
-    if (r.id === window.lkSel) tr.className = 'sel';
+    const mj = moje(r.id);
+    tr.className = [r.id === window.lkSel ? 'sel' : '', mj.odrz ? 'odrz' : ''].filter(Boolean).join(' ');
     const td = (cls) => { const c = el('td', cls); tr.appendChild(c); return c; };
     const a = td();
-    a.appendChild(el('div', null, r.miejscowosc));
+    const nm = el('div', 'lk-name');
+    nm.append(markBtn(r, 'gw'), markBtn(r, 'odrz'), el('span', null, r.miejscowosc));
+    a.appendChild(nm);
     if (r.lokalizacja) a.appendChild(el('span', 'small', r.lokalizacja));
     const tags = el('span', 'small');
     tags.appendChild(badge(r.oc));
     if (isNew(r)) { const t = el('span', 'lk-tag new', 'nowa'); tags.appendChild(t); }
     if (!isKom(r)) tags.appendChild(el('span', 'lk-tag', RODZ_K[rodz(r)]));
     if (r.typ === 'Udział') { const t = el('span', 'lk-tag bad', r.udzial ? 'udział ' + r.udzial : 'udział'); t.dataset.t = 'udzial'; tags.appendChild(t); }
+    if (mj.odrz) tags.appendChild(el('span', 'lk-tag bad', 'odrzucona'));
     a.appendChild(tags);
+    if ((mj.kom || '').trim()) { const k = mj.kom.trim(); a.appendChild(el('span', 'small lk-kom', '✎ ' + (k.length > 70 ? k.slice(0, 70) + '…' : k))); }
     td('num').textContent = zl(r.cena);
     td('num').textContent = num(r.m2, 2);
     td('num lk-hide-narrow').textContent = num(r.cena_m2);
@@ -436,6 +472,19 @@ function drawDetail(D, r) {
   h.appendChild(el('p', 'note', RODZ[rodz(r)] + ' · ' + (r.uwagi || '') + (r.sprawdzono ? ' · sprawdzono ' + dataKr(r.sprawdzono) : '')));
   head.append(h, badge(r.oc));
   box.appendChild(head);
+
+  const mj = moje(r.id);
+  const sec = el('div', 'lk-moje');
+  const btns = el('div', 'lk-moje-btns');
+  const tb = (k, txtOn, txtOff) => { const on = !!mj[k]; const b = el('button', 'lk-btn ' + k + (on ? ' on' : ''), on ? txtOn : txtOff); b.type = 'button'; b.dataset.mark = k; b.dataset.id = r.id; b.setAttribute('aria-pressed', String(on)); return b; };
+  btns.append(tb('gw', '★ Obserwujesz', '☆ Obserwuj'), tb('odrz', '✕ Odrzucona', '✕ Odrzuć'));
+  const lab = el('label', 'lk-moje-kom');
+  const ta = document.createElement('textarea');
+  ta.className = 'lk-in'; ta.rows = 3; ta.value = mj.kom || ''; ta.placeholder = 'Np. dzwoniłem do komornika, lokal zamieszkany, obejrzeć w sobotę…';
+  ta.addEventListener('input', () => zapiszMoje(r.id, { kom: ta.value }));
+  lab.append(el('span', null, 'Twój komentarz'), ta);
+  sec.append(btns, lab, el('p', 'note', 'Oznaczenia i komentarze zapisują się tylko w tej przeglądarce, na tym urządzeniu.'));
+  box.appendChild(sec);
 
   const facts = el('div', 'lk-facts');
   const fact = (t, k, v, s) => { const f = el('div', 'lk-fact'); const kk = el('div', 'k'); kk.appendChild(term(t, k)); f.append(kk, el('div', 'v', v)); if (s) f.appendChild(el('div', 's', s)); facts.appendChild(f); };
