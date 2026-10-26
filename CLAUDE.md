@@ -25,6 +25,7 @@ Rodzaje sprzedaży (pole `rodzaj` w data/licytacje.json): "komornicza", "syndyk"
 ## Struktura
 - `index.html` – układ i style (5 zakładek: Start, Oferty, Na tle rynku, Kalkulator zysku, Poradnik). Tokeny kolorów jasny/ciemny na górze.
 - `app.js` – cała logika: wczytanie `data/*.json` (`wczytajDane`, wyniki w obiekcie `DATA`), obliczenia (`calcPorownanie`, `calcPodsumowanie`, `calcTrendCen`, `calcPodobne`), ocena ofert, karta oferty, wykresy d3, kalkulator kupna/remontu/sprzedaży, maksymalna cena.
+- Moje oznaczenia (★ obserwowane, ✕ odrzucone, komentarz) – zapis tylko w przeglądarce (`localStorage`, klucz `lk-moje-v1`, obiekt `{id oferty: {gw, odrz, kom}}`); nie trafiają do repo ani na inne urządzenia.
 - `slownik.js` – słownik pojęć (`window.LK_SLOWNIK`), używany przez podpowiedzi `data-t="klucz"`.
 - `data/` – dane (JSON, tablice obiektów). Zmieniaj TYLKO dane przy codziennej aktualizacji.
 - d3 v7 z cdnjs.
