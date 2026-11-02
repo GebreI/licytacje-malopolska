@@ -838,5 +838,75 @@
   "rok": 2025,
   "mediana_m2": 6276,
   "transakcje": 405
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2016,
+  "mediana_m2": 2585,
+  "transakcje": 283
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2017,
+  "mediana_m2": 2659,
+  "transakcje": 300
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2018,
+  "mediana_m2": 3035,
+  "transakcje": 309
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2019,
+  "mediana_m2": 3480,
+  "transakcje": 342
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2020,
+  "mediana_m2": 3973,
+  "transakcje": 301
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2021,
+  "mediana_m2": 4494,
+  "transakcje": 391
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2022,
+  "mediana_m2": 5229,
+  "transakcje": 295
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2023,
+  "mediana_m2": 5555,
+  "transakcje": 342
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2024,
+  "mediana_m2": 6017,
+  "transakcje": 344
+ },
+ {
+  "powiat": "oświęcimski",
+  "obszar": "powiat oświęcimski",
+  "rok": 2025,
+  "mediana_m2": 6208,
+  "transakcje": 388
  }
 ]
