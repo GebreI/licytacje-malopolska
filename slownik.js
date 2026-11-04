@@ -1,14 +1,14 @@
 // Słownik pojęć – wyjaśnienia pokazywane po najechaniu (lub dotknięciu) na podkreślone słowa.
 window.LK_SLOWNIK = {
   licytacja: ['Licytacja komornicza', 'Sprzedaż nieruchomości dłużnika przez komornika, żeby spłacić jego długi. Wygrywa ten, kto zaoferuje najwięcej. Nadzoruje ją sąd rejonowy.'],
-  elicytacja: ['E-licytacja', 'Licytacja przez internet na portalu elicytacje.komornik.pl. Trwa 7 dni. Trzeba założyć konto, potwierdzić tożsamość i wpłacić rękojmię najpóźniej 2 dni robocze przed startem. Nie musisz nigdzie jechać.'],
+  elicytacja: ['E-licytacja', 'Licytacja przez internet na portalu licytacje.komornik.pl (Portal Obwieszczeń i Licytacji; dawne elicytacje.komornik.pl połączono z nim w lutym 2026). Trwa 7 dni. Trzeba założyć konto, potwierdzić tożsamość i wpłacić rękojmię najpóźniej 2 dni robocze przed startem. Nie musisz nigdzie jechać.'],
   stacjonarna: ['Licytacja stacjonarna', 'Licytacja na sali w sądzie, w konkretnym dniu i godzinie. Trzeba przyjść osobiście (z dowodem) albo wysłać pełnomocnika z pełnomocnictwem z podpisem notarialnie poświadczonym.'],
   pierwsza: ['Pierwsza licytacja', 'Pierwsze podejście do sprzedaży. Cena wywołania to 3/4 sumy oszacowania.'],
   druga: ['Druga licytacja', 'Kolejne podejście, gdy na pierwszej nikt nie kupił. Cena wywołania spada do 2/3 sumy oszacowania, więc bywa taniej – ale zastanów się, czemu za pierwszym razem nie było chętnych.'],
   cena_wywolania: ['Cena wywołania', 'Najniższa cena, od której zaczyna się licytacja. Prawie zawsze ostatecznie płaci się więcej, bo inni podbijają. W kalkulatorze możesz doliczyć „przebicie”.'],
   suma_oszacowania: ['Suma oszacowania', 'Wartość nieruchomości wyceniona przez rzeczoznawcę na zlecenie komornika. Od niej liczy się cenę wywołania (3/4 lub 2/3) i rękojmię (1/10). Tutaj szacujemy ją z ceny wywołania – dokładna kwota jest w obwieszczeniu.'],
   operat: ['Operat szacunkowy', 'Dokument rzeczoznawcy z wyceną i opisem lokalu (stan, metraż, otoczenie). Można go przejrzeć w kancelarii komornika. Często jest jedynym źródłem wiedzy o wnętrzu, jeśli lokal nie był udostępniony.'],
-  obwieszczenie: ['Obwieszczenie o licytacji', 'Oficjalne ogłoszenie komornika: co, kiedy, gdzie, za ile, wysokość rękojmi, terminy oglądania. Pełne obwieszczenia są na licytacje.komornik.pl i elicytacje.komornik.pl.'],
+  obwieszczenie: ['Obwieszczenie o licytacji', 'Oficjalne ogłoszenie komornika: co, kiedy, gdzie, za ile, wysokość rękojmi, terminy oglądania. Pełne obwieszczenia są na licytacje.komornik.pl (starsze, sprzed 27.02.2026 – na ool.komornik.pl).'],
   komornik: ['Komornik prowadzący sprawę', 'Kancelaria komornicza, która sprzedaje mieszkanie. To ona publikuje obwieszczenie, udostępnia operat szacunkowy i ustala terminy oglądania lokalu – możesz zadzwonić i zapytać o szczegóły.'],
   sygnatura: ['Sygnatura akt', 'Numer sprawy u komornika, np. „Km 531/21”. Podaj go, gdy dzwonisz do kancelarii, i wpisz w wyszukiwarkę na licytacje.komornik.pl – tak najszybciej znajdziesz pełne obwieszczenie.'],
   ogledziny: ['Oględziny', 'Termin, w którym można obejrzeć lokal przed licytacją – zwykle w ciągu 2 tygodni przed nią, w godzinach podanych w obwieszczeniu. Bywa, że dłużnik nie wpuszcza – wtedy kupujesz „w ciemno”.'],

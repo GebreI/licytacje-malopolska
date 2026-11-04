@@ -266,7 +266,7 @@ function flagi(r, f) {
   if (r.trend && r.trend.srednio_rocznie_pct != null) out.push({ lvl: 'info', t: 'trend', txt: 'Ceny w powiecie ' + r.trend.rok_od + '–' + r.trend.rok_do + ': ' + pct(r.trend.wzrost_10l_pct), s: 'Średnio ' + num(r.trend.srednio_rocznie_pct, 1) + '% rocznie, w ostatnim roku ' + pct(r.trend.zmiana_rr_pct) + ' (GUS ' + r.trend.rok_od + '–' + r.trend.rok_do + ').' });
   if (r.licytacja === 'druga') out.push({ lvl: 'info', t: 'druga', txt: 'Druga licytacja – niższa cena wywołania', s: 'Na pierwszej nie było chętnych. Sprawdź dlaczego.' });
   if (r.tryb === 'stacjonarna') out.push({ lvl: 'info', t: 'stacjonarna', txt: 'Licytacja stacjonarna w sądzie', s: 'Trzeba być osobiście lub wysłać pełnomocnika.' });
-  if (r.tryb === 'e-licytacja') out.push({ lvl: 'info', t: 'elicytacja', txt: 'E-licytacja przez internet', s: 'Konto na elicytacje.komornik.pl załóż z wyprzedzeniem.' });
+  if (r.tryb === 'e-licytacja') out.push({ lvl: 'info', t: 'elicytacja', txt: 'E-licytacja przez internet', s: 'Konto na licytacje.komornik.pl (Portal Obwieszczeń i Licytacji) załóż z wyprzedzeniem.' });
   if (f && f.roi >= 0.1 && r.typ !== 'Udział') out.push({ lvl: 'green', t: 'roi', txt: 'Szacowany zwrot ' + pct(f.roi * 100), s: 'Przy obecnych założeniach z kalkulatora.' });
   return out;
 }
@@ -527,7 +527,7 @@ function drawDetail(D, r) {
     todo.push('Sprawdź księgę wieczystą na ekw.ms.gov.pl – dział III i IV.');
     todo.push('Umów się na oględziny i przeczytaj operat w kancelarii komornika.');
     todo.push('Ustaw w kalkulatorze realny remont dla tego mieszkania i sprawdź maksymalną cenę.');
-    if (r.tryb === 'e-licytacja') todo.push('Załóż konto na elicytacje.komornik.pl i potwierdź tożsamość z wyprzedzeniem.');
+    if (r.tryb === 'e-licytacja') todo.push('Załóż konto na licytacje.komornik.pl (Portal Obwieszczeń i Licytacji) i potwierdź tożsamość z wyprzedzeniem.');
     if (r.termin_wadium && dni(r.termin_wadium) >= 0) todo.push('Wpłać rękojmię najpóźniej ' + dataPL(r.termin_wadium) + ' – i miej gotówkę na resztę ceny.');
     else todo.push('Wpłać rękojmię w terminie z obwieszczenia – i miej gotówkę na resztę ceny.');
   } else if (isOgl(r)) {
@@ -580,7 +580,8 @@ function drawDetail(D, r) {
   const google = (qq) => 'https://www.google.com/search?q=' + encodeURIComponent(qq);
   const syg1 = (r.sygnatura || '').split(/[,;]/)[0].trim();
   if (isKom(r)) {
-    link(r.tryb === 'e-licytacja' ? 'https://elicytacje.komornik.pl/' : 'https://licytacje.komornik.pl/', 'Portal komorników ↗');
+    // Od 27.02.2026 licytacje zwykłe i elektroniczne są w jednym Portalu Obwieszczeń i Licytacji (dawne elicytacje.komornik.pl nie działa osobno).
+    link('https://licytacje.komornik.pl/wyszukiwarka-licytacji', 'Portal komorników ↗');
     link(google('site:licytacje.komornik.pl ' + (syg1 ? '"' + syg1 + '" ' : '') + r.miejscowosc + ' lokal mieszkalny'), 'Szukaj obwieszczenia ↗');
     if (r.komornik) link(google('komornik sądowy ' + r.komornik + ' kontakt'), 'Kontakt do komornika ↗');
   }
