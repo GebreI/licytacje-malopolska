@@ -581,7 +581,8 @@ function drawDetail(D, r) {
   const syg1 = (r.sygnatura || '').split(/[,;]/)[0].trim();
   if (isKom(r)) {
     // Od 27.02.2026 licytacje zwykłe i elektroniczne są w jednym Portalu Obwieszczeń i Licytacji (dawne elicytacje.komornik.pl nie działa osobno).
-    link('https://licytacje.komornik.pl/wyszukiwarka-licytacji', 'Portal komorników ↗');
+    // Wyszukiwarka portalu z filtrami: nieruchomości + województwo (parametry potwierdzone w adresach portalu).
+    link('https://licytacje.komornik.pl/wyszukiwarka-licytacji?mainCategory=REAL_ESTATE&province=' + encodeURIComponent('małopolskie'), 'Portal komorników: nieruchomości w Małopolsce ↗');
     link(google('site:licytacje.komornik.pl ' + (syg1 ? '"' + syg1 + '" ' : '') + r.miejscowosc + ' lokal mieszkalny'), 'Szukaj obwieszczenia ↗');
     if (r.komornik) link(google('komornik sądowy ' + r.komornik + ' kontakt'), 'Kontakt do komornika ↗');
   }
