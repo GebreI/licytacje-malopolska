@@ -588,15 +588,18 @@ function drawDetail(D, r) {
   const google = (qq) => 'https://www.google.com/search?q=' + encodeURIComponent(qq);
   const syg1 = (r.sygnatura || '').split(/[,;]/)[0].trim();
   // Nazwa ulicy/osiedla z lokalizacji (bez „ul.”, „os.”…), np. „Legionów Polskich”; „gm. X” to nie ulica – pomijamy.
-  const ulM = (r.lokalizacja || '').replace(/\s*\(.*\)/, '').trim().match(/^(?:ul\.|al\.|os\.|pl\.)\s*(.+)$/i);
+  const ulM = (r.lokalizacja || '').replace(/\s*\(.*\)/, '').trim().match(/^(?:ul\.|al\.|os\.|pl\.)\s*([^,]+)/i);
   const ulica = ulM ? ulM[1].trim() : '';
-  const gdzie = r.miejscowosc + (ulica ? ' "' + ulica + '"' : '');
+  // Gdy brak ulicy (np. „gm. Michałowice”), dopisz przynajmniej gminę, jeśli inna niż miejscowość.
+  const gmM = (r.lokalizacja || '').match(/gm\.\s*([^,(]+)/i);
+  const gmina = gmM && gmM[1].trim() !== r.miejscowosc ? gmM[1].trim() : '';
+  const gdzie = r.miejscowosc + (ulica ? ' "' + ulica + '"' : gmina ? ' gmina ' + gmina : '');
   if (isKom(r)) {
     // Od 27.02.2026 licytacje zwykłe i elektroniczne są w jednym Portalu Obwieszczeń i Licytacji (dawne elicytacje.komornik.pl nie działa osobno).
     // Wyszukiwarka portalu z filtrami: nieruchomości + województwo (parametry potwierdzone w adresach portalu).
     link('https://licytacje.komornik.pl/wyszukiwarka-licytacji?mainCategory=REAL_ESTATE&province=' + encodeURIComponent('małopolskie'), 'Portal komorników: nieruchomości w Małopolsce ↗');
     // Sygnatura lub ulica (wystarczy jedno z nich) + miejscowość.
-    const kto = syg1 && ulica ? '("' + syg1 + '" OR "' + ulica + '") ' + r.miejscowosc : syg1 ? '"' + syg1 + '" ' + r.miejscowosc : ulica ? gdzie : r.miejscowosc + ' lokal mieszkalny';
+    const kto = syg1 && ulica ? '("' + syg1 + '" OR "' + ulica + '") ' + r.miejscowosc : syg1 ? '"' + syg1 + '" ' + r.miejscowosc : ulica ? gdzie : gdzie + ' lokal mieszkalny';
     link(google('site:licytacje.komornik.pl ' + kto), 'Szukaj obwieszczenia ↗');
     if (r.komornik) link(google('komornik sądowy ' + r.komornik + ' kontakt'), 'Kontakt do komornika ↗');
   }
