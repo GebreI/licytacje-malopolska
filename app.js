@@ -495,6 +495,8 @@ function drawDetail(D, r) {
     fact('rekojmia', 'Rękojmia do wpłaty', osz ? '~' + zl(osz / 10) : '—', osz ? '1/10 sumy oszacowania' : 'sprawdź w obwieszczeniu');
     fact('termin', 'Licytacja', r.termin ? dataPL(r.termin) : 'brak daty', [r.licytacja ? r.licytacja + ' licytacja' : '', r.tryb].filter(Boolean).join(' · ') || null);
     fact('termin_rekojmi', 'Termin rękojmi', r.termin_wadium ? dataPL(r.termin_wadium) : '—', r.termin_wadium ? (dni(r.termin_wadium) >= 0 ? 'za ' + dni(r.termin_wadium) + ' dni' : 'minął') : 'brak w źródle');
+    fact('komornik', 'Komornik', r.komornik || 'brak w danych', r.komornik ? null : 'automat dopisze go z Adradar');
+    if (r.sygnatura) fact('sygnatura', 'Sygnatura', r.sygnatura, 'podaj ją, dzwoniąc do kancelarii');
   } else if (!isOgl(r)) {
     fact('termin', nazwaTerminu(r), r.termin ? dataPL(r.termin) : 'brak daty', r.termin ? null : 'sprawdź w ogłoszeniu');
     fact('termin_rekojmi', 'Termin wadium', r.termin_wadium ? dataPL(r.termin_wadium) : '—', r.termin_wadium ? (dni(r.termin_wadium) >= 0 ? 'za ' + dni(r.termin_wadium) + ' dni' : 'minął') : 'brak w źródle');
@@ -574,7 +576,16 @@ function drawDetail(D, r) {
   if (r.url) link(r.url, 'Ogłoszenie ↗');
   if (r.url2) link(r.url2, 'Drugie źródło ↗');
   link('https://ekw.ms.gov.pl/', 'Księgi wieczyste ↗');
-  if (isKom(r)) link(r.tryb === 'e-licytacja' ? 'https://elicytacje.komornik.pl/' : 'https://licytacje.komornik.pl/', 'Portal komorników ↗');
+  // Oficjalne, darmowe źródła pełnych ogłoszeń (zwykłe linki – strona niczego z nich nie pobiera).
+  const google = (qq) => 'https://www.google.com/search?q=' + encodeURIComponent(qq);
+  const syg1 = (r.sygnatura || '').split(/[,;]/)[0].trim();
+  if (isKom(r)) {
+    link(r.tryb === 'e-licytacja' ? 'https://elicytacje.komornik.pl/' : 'https://licytacje.komornik.pl/', 'Portal komorników ↗');
+    link(google('site:licytacje.komornik.pl ' + (syg1 ? '"' + syg1 + '" ' : '') + r.miejscowosc + ' lokal mieszkalny'), 'Szukaj obwieszczenia ↗');
+    if (r.komornik) link(google('komornik sądowy ' + r.komornik + ' kontakt'), 'Kontakt do komornika ↗');
+  }
+  if (rodz(r) === 'przetarg') link(google('przetarg mieszkanie ' + r.miejscowosc + ' ' + (r.lokalizacja || '').replace(/\s*\(.*\)/, '') + ' BIP'), 'Szukaj w BIP ↗');
+  if (rodz(r) === 'syndyk') { link('https://krz.ms.gov.pl/', 'Rejestr Zadłużonych (KRZ) ↗'); link(google('syndyk sprzedaż mieszkanie ' + r.miejscowosc + ' obwieszczenie'), 'Szukaj ogłoszenia syndyka ↗'); }
   const calc = el('button', 'lk-link', 'Policz w kalkulatorze →'); calc.dataset.go = 'kalkulator'; calc.addEventListener('click', () => { window.lkWf = r.id; });
   links.appendChild(calc);
   box.appendChild(links);
