@@ -415,6 +415,13 @@ q('.lk-offers tbody').addEventListener('click', (e) => {
   const tr = e.target.closest('tr[data-key]');
   if (tr) { window.lkSel = tr.dataset.key; window.lkDraw(); q('#karta-oferty').scrollIntoView({ block: 'nearest' }); }
 });
+// Przycisk „Wróć do listy ofert” w karcie oferty – przewija do zaznaczonego wiersza w tabeli.
+const backBtn = () => { const b = el('button', 'lk-btn lk-back', '↑ Wróć do listy ofert'); b.type = 'button'; b.dataset.back = '1'; return b; };
+root.addEventListener('click', (e) => {
+  if (!e.target.closest('[data-back]')) return;
+  const tr = q('.lk-offers tbody tr.sel');
+  (tr || q('#lista-ofert')).scrollIntoView({ block: tr ? 'center' : 'start', behavior: 'smooth' });
+});
 
 function drawOferty(D, rows) {
   q('.lk-count').textContent = `Pokazano ${rows.length} z ${D.rows.length}. Sortuj, klikając nagłówek. Domyślnie najlepsze na górze.`;
@@ -471,6 +478,7 @@ function drawDetail(D, r) {
   const h = el('div'); h.appendChild(el('h2', null, label2(r)));
   h.appendChild(el('p', 'note', RODZ[rodz(r)] + ' · ' + (r.uwagi || '') + (r.sprawdzono ? ' · sprawdzono ' + dataKr(r.sprawdzono) : '')));
   head.append(h, badge(r.oc));
+  box.appendChild(backBtn());
   box.appendChild(head);
 
   const mj = moje(r.id);
@@ -590,6 +598,7 @@ function drawDetail(D, r) {
   if (rodz(r) === 'syndyk') { link('https://krz.ms.gov.pl/', 'Rejestr Zadłużonych (KRZ) ↗'); link(google('syndyk sprzedaż mieszkanie ' + r.miejscowosc + ' obwieszczenie'), 'Szukaj ogłoszenia syndyka ↗'); }
   const calc = el('button', 'lk-link', 'Policz w kalkulatorze →'); calc.dataset.go = 'kalkulator'; calc.addEventListener('click', () => { window.lkWf = r.id; });
   links.appendChild(calc);
+  links.appendChild(backBtn());
   box.appendChild(links);
 }
 
