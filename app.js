@@ -587,15 +587,21 @@ function drawDetail(D, r) {
   // Oficjalne, darmowe źródła pełnych ogłoszeń (zwykłe linki – strona niczego z nich nie pobiera).
   const google = (qq) => 'https://www.google.com/search?q=' + encodeURIComponent(qq);
   const syg1 = (r.sygnatura || '').split(/[,;]/)[0].trim();
+  // Nazwa ulicy/osiedla z lokalizacji (bez „ul.”, „os.”…), np. „Legionów Polskich”; „gm. X” to nie ulica – pomijamy.
+  const ulM = (r.lokalizacja || '').replace(/\s*\(.*\)/, '').trim().match(/^(?:ul\.|al\.|os\.|pl\.)\s*(.+)$/i);
+  const ulica = ulM ? ulM[1].trim() : '';
+  const gdzie = r.miejscowosc + (ulica ? ' "' + ulica + '"' : '');
   if (isKom(r)) {
     // Od 27.02.2026 licytacje zwykłe i elektroniczne są w jednym Portalu Obwieszczeń i Licytacji (dawne elicytacje.komornik.pl nie działa osobno).
     // Wyszukiwarka portalu z filtrami: nieruchomości + województwo (parametry potwierdzone w adresach portalu).
     link('https://licytacje.komornik.pl/wyszukiwarka-licytacji?mainCategory=REAL_ESTATE&province=' + encodeURIComponent('małopolskie'), 'Portal komorników: nieruchomości w Małopolsce ↗');
-    link(google('site:licytacje.komornik.pl ' + (syg1 ? '"' + syg1 + '" ' : '') + r.miejscowosc + ' lokal mieszkalny'), 'Szukaj obwieszczenia ↗');
+    // Sygnatura lub ulica (wystarczy jedno z nich) + miejscowość.
+    const kto = syg1 && ulica ? '("' + syg1 + '" OR "' + ulica + '") ' + r.miejscowosc : syg1 ? '"' + syg1 + '" ' + r.miejscowosc : ulica ? gdzie : r.miejscowosc + ' lokal mieszkalny';
+    link(google('site:licytacje.komornik.pl ' + kto), 'Szukaj obwieszczenia ↗');
     if (r.komornik) link(google('komornik sądowy ' + r.komornik + ' kontakt'), 'Kontakt do komornika ↗');
   }
-  if (rodz(r) === 'przetarg') link(google('przetarg mieszkanie ' + r.miejscowosc + ' ' + (r.lokalizacja || '').replace(/\s*\(.*\)/, '') + ' BIP'), 'Szukaj w BIP ↗');
-  if (rodz(r) === 'syndyk') { link('https://krz.ms.gov.pl/', 'Rejestr Zadłużonych (KRZ) ↗'); link(google('syndyk sprzedaż mieszkanie ' + r.miejscowosc + ' obwieszczenie'), 'Szukaj ogłoszenia syndyka ↗'); }
+  if (rodz(r) === 'przetarg') link(google('przetarg mieszkanie ' + gdzie + ' BIP'), 'Szukaj w BIP ↗');
+  if (rodz(r) === 'syndyk') { link('https://krz.ms.gov.pl/', 'Rejestr Zadłużonych (KRZ) ↗'); link(google('syndyk sprzedaż mieszkanie ' + gdzie + ' obwieszczenie'), 'Szukaj ogłoszenia syndyka ↗'); }
   const calc = el('button', 'lk-link', 'Policz w kalkulatorze →'); calc.dataset.go = 'kalkulator'; calc.addEventListener('click', () => { window.lkWf = r.id; });
   links.appendChild(calc);
   links.appendChild(backBtn());
