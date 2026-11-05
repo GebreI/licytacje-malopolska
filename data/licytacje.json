@@ -17,9 +17,11 @@
     "rabat_pct": -61,
     "uwagi": "Przetarg; mieszkanie na XI piętrze powstałe z adaptacji strychu, bez obciążeń, odrębna własność ustanawiana aktem notarialnym; wadium 11 000 zł; netto/brutto nieznane",
     "dodano": "2026-11-02",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://listaprzetargow.pl/oferty/550415-przetarg-mieszkanie-oswiecim-malopolskie",
-    "url2": ""
+    "url2": "",
+    "komornik": "",
+    "sygnatura": ""
   },
   {
     "id": "lp-550405",
@@ -39,53 +41,11 @@
     "rabat_pct": -33,
     "uwagi": "Przetarg; 2 pokoje, ciemna kuchnia, przedpokój, łazienka z WC, IV piętro; wadium 1 500 zł; netto/brutto nieznane",
     "dodano": "2026-11-02",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://listaprzetargow.pl/oferty/550405-przetarg-mieszkanie-tarnow-malopolskie",
-    "url2": ""
-  },
-  {
-    "id": "lp-548503",
-    "rodzaj": "przetarg",
-    "miejscowosc": "Chrzanów",
-    "lokalizacja": "os. Niepodległości",
-    "cena": 141388,
-    "m2": 24.05,
-    "cena_m2": 5879,
-    "pokoje": 1,
-    "typ": "Całe mieszkanie",
-    "udzial": null,
-    "licytacja": "",
-    "tryb": "",
-    "termin": null,
-    "termin_wadium": "2026-11-04",
-    "rabat_pct": -7,
-    "uwagi": "Przetarg; kawalerka na 8. (ostatnim) piętrze, pokój z wnęką kuchenną, przedpokój, łazienka z WC, piwnica 4,82 m²; wadium 5 000 zł; netto/brutto nieznane",
-    "dodano": "2026-10-24",
-    "sprawdzono": "2026-11-04",
-    "url": "https://listaprzetargow.pl/oferty/548503-przetarg-mieszkanie-chrzanow-malopolskie",
-    "url2": ""
-  },
-  {
-    "id": "lp-548502",
-    "rodzaj": "przetarg",
-    "miejscowosc": "Chrzanów",
-    "lokalizacja": "os. Niepodległości",
-    "cena": 139271,
-    "m2": 23.69,
-    "cena_m2": 5879,
-    "pokoje": 1,
-    "typ": "Całe mieszkanie",
-    "udzial": null,
-    "licytacja": "",
-    "tryb": "",
-    "termin": null,
-    "termin_wadium": "2026-11-04",
-    "rabat_pct": -7,
-    "uwagi": "Przetarg; kawalerka na 8. (ostatnim) piętrze, pokój z wnęką kuchenną, łazienka z WC, piwnica; wadium 5 000 zł; netto/brutto nieznane",
-    "dodano": "2026-10-24",
-    "sprawdzono": "2026-11-04",
-    "url": "https://listaprzetargow.pl/oferty/548502-przetarg-mieszkanie-chrzanow-malopolskie",
-    "url2": ""
+    "url2": "",
+    "komornik": "",
+    "sygnatura": ""
   },
   {
     "id": "lp-545884",
@@ -105,9 +65,11 @@
     "rabat_pct": -45,
     "uwagi": "Spółdzielcze własnościowe prawo do lokalu, 3. piętro",
     "dodano": "2026-10-15",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://listaprzetargow.pl/oferty/545884-licytacja-komornicza-mieszkanie-olkusz-malopolskie",
-    "url2": "https://przetargi.adradar.pl/przetarg/mieszkania/Olkusz/licytacje_komornicze/17994026"
+    "url2": "https://przetargi.adradar.pl/przetarg/mieszkania/Olkusz/licytacje_komornicze/17994026",
+    "komornik": "Natalia Gretschel, Olkusz",
+    "sygnatura": "Km 531/21, Km 563/25, Km 576/25, Km 277/26, Km 315/26, Km 316/26, Km 356/26"
   },
   {
     "id": "lp-544873",
@@ -127,9 +89,11 @@
     "rabat_pct": -23,
     "uwagi": "Kawalerka",
     "dodano": "2026-10-15",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://listaprzetargow.pl/oferty/544873-licytacja-komornicza-mieszkanie-chrzanow-malopolskie",
-    "url2": "https://przetargi.adradar.pl/przetarg/mieszkania/Chrzan%C3%B3w/licytacje_komornicze/17981289"
+    "url2": "https://przetargi.adradar.pl/przetarg/mieszkania/Chrzan%C3%B3w/licytacje_komornicze/17981289",
+    "komornik": "Henryka Bednorz-Godyń, Chrzanów",
+    "sygnatura": "Kmp 31/21"
   },
   {
     "id": "lp-543779",
@@ -149,9 +113,11 @@
     "rabat_pct": null,
     "uwagi": "Parter, balkon, dobry standard",
     "dodano": "2026-10-15",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://listaprzetargow.pl/oferty/543779-licytacja-komornicza-mieszkanie-radziemice-malopolskie",
-    "url2": "https://przetargi.adradar.pl/przetarg/mieszkania/Radziemice/licytacje_komornicze/17953943"
+    "url2": "https://przetargi.adradar.pl/przetarg/mieszkania/Radziemice/licytacje_komornicze/17953943",
+    "komornik": "Małgorzata Gonet, Kraków",
+    "sygnatura": "Kmp 11/21"
   },
   {
     "id": "lp-536486",
@@ -171,31 +137,11 @@
     "rabat_pct": -55,
     "uwagi": "Budynek dwulokalowy; brak prawnie zabezpieczonego dojazdu do drogi publicznej",
     "dodano": "2026-10-15",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://listaprzetargow.pl/oferty/536486-licytacja-komornicza-mieszkanie-osieczany-malopolskie",
-    "url2": "https://przetargi.adradar.pl/przetarg/mieszkania/Osieczany/licytacje_komornicze/17790193"
-  },
-  {
-    "id": "lp-546265",
-    "rodzaj": "syndyk",
-    "miejscowosc": "Zdziesławice",
-    "lokalizacja": "gm. Michałowice",
-    "cena": 95000,
-    "m2": 67.5,
-    "cena_m2": 1407,
-    "pokoje": 2,
-    "typ": "Całe mieszkanie",
-    "udzial": null,
-    "licytacja": "",
-    "tryb": "",
-    "termin": null,
-    "termin_wadium": "2026-11-04",
-    "rabat_pct": null,
-    "uwagi": "Sprzedaż przez syndyka, 1. piętro, z piwnicą; cena netto – sprawdź VAT; wadium 9 500 zł",
-    "dodano": "2026-10-21",
-    "sprawdzono": "2026-11-04",
-    "url": "https://listaprzetargow.pl/oferty/546265-syndyk-mieszkanie-zdzieslawice-malopolskie",
-    "url2": ""
+    "url2": "https://przetargi.adradar.pl/przetarg/mieszkania/Osieczany/licytacje_komornicze/17790193",
+    "komornik": "Karolina Szynalik-Żywicka, Myślenice",
+    "sygnatura": "Km 181/12, Km 194/22, Km 633/14, Km 601/17, Km 530/22, Km 531/22, Km 195/22"
   },
   {
     "id": "lp-544998",
@@ -215,9 +161,11 @@
     "rabat_pct": -13,
     "uwagi": "Przetarg; kawalerka na poddaszu budynku z lat 50., WC na korytarzu, piwnica 2,88 m²; wadium 8 900 zł",
     "dodano": "2026-10-21",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://listaprzetargow.pl/oferty/544998-przetarg-mieszkanie-wegrzce-malopolskie",
-    "url2": ""
+    "url2": "",
+    "komornik": "",
+    "sygnatura": ""
   },
   {
     "id": "do-156957628",
@@ -237,9 +185,11 @@
     "rabat_pct": null,
     "uwagi": "Rynek wtórny, 4/4 piętro, do kapitalnego remontu, instalacje do wymiany; pełna własność",
     "dodano": "2026-10-21",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://www.domiporta.pl/nieruchomosci/sprzedam-kawalerke-tarnow-rolnicza-25m2/156957628",
-    "url2": ""
+    "url2": "",
+    "komornik": "",
+    "sygnatura": ""
   },
   {
     "id": "do-156612822",
@@ -259,9 +209,11 @@
     "rabat_pct": null,
     "uwagi": "Rynek wtórny, 3/3 piętro, do kapitalnego remontu; spółdzielcze własnościowe; cena do negocjacji",
     "dodano": "2026-10-21",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://www.domiporta.pl/nieruchomosci/sprzedam-kawalerke-tarnow-osiedle-niepodleglosci-20m2/156612822",
-    "url2": ""
+    "url2": "",
+    "komornik": "",
+    "sygnatura": ""
   },
   {
     "id": "do-156284973",
@@ -281,8 +233,34 @@
     "rabat_pct": null,
     "uwagi": "Rynek wtórny, parter/półsuterena w bloku z 1990 r., częściowo umeblowane",
     "dodano": "2026-10-21",
-    "sprawdzono": "2026-11-04",
+    "sprawdzono": "2026-11-05",
     "url": "https://www.domiporta.pl/nieruchomosci/sprzedam-mieszkanie-dwupokojowe-alwernia-45m2/156284973",
-    "url2": "https://alwernia.nieruchomosci-online.pl/mieszkanie,nad-jeziorem/26302303.html"
+    "url2": "https://alwernia.nieruchomosci-online.pl/mieszkanie,nad-jeziorem/26302303.html",
+    "komornik": "",
+    "sygnatura": ""
+  },
+  {
+    "id": "ad-18061992",
+    "rodzaj": "przetarg",
+    "miejscowosc": "Tarnów",
+    "lokalizacja": "os. Zakładowe",
+    "cena": 200000,
+    "m2": 43.84,
+    "cena_m2": 4562,
+    "pokoje": 2,
+    "typ": "Całe mieszkanie",
+    "udzial": null,
+    "licytacja": "",
+    "tryb": "",
+    "termin": "2026-11-06",
+    "termin_wadium": "2026-11-04",
+    "rabat_pct": null,
+    "uwagi": "Przetarg ustny spółdzielni mieszkaniowej (siedziba w Strzelcach Opolskich), 6.11.2026 godz. 10:00; odrębna własność lokalu, III piętro, 2 pokoje z kuchnią. Wadium 10% (ok. 20 000 zł) – termin wpłaty minął 4.11. Brak informacji, czy cena netto/brutto.",
+    "dodano": "2026-11-05",
+    "sprawdzono": "2026-11-05",
+    "url": "https://przetargi.adradar.pl/przetarg/mieszkania/Tarn%C3%B3w/spoldzielnia_mieszkaniowa/18061992",
+    "url2": "",
+    "komornik": "",
+    "sygnatura": ""
   }
 ]
