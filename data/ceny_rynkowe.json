@@ -219,5 +219,31 @@
   "transakcyjna_zakres": "powiat oświęcimski",
   "transakcyjna_rok": 2025,
   "transakcyjna_url": "https://bdl.stat.gov.pl/api/v1/data/by-variable/633687?unit-level=5&unit-parent-id=011200000000&year=2025&format=json&page=0&page-size=100"
+ },
+ {
+  "miejscowosc": "Wolbrom",
+  "gmina": "Wolbrom",
+  "powiat": "olkuski",
+  "ofertowa_m2": 6441,
+  "ofertowa_zakres": "gmina Wolbrom",
+  "ofertowa_data": "2026-11",
+  "ofertowa_url": "https://realadvisor.pl/pl/ceny-mieszkan/powiat-olkuski",
+  "transakcyjna_m2": 5769,
+  "transakcyjna_zakres": "powiat olkuski",
+  "transakcyjna_rok": 2025,
+  "transakcyjna_url": "https://bdl.stat.gov.pl/api/v1/data/by-variable/633687?unit-level=5&unit-parent-id=011200000000&year=2025&format=json"
+ },
+ {
+  "miejscowosc": "Koniówka",
+  "gmina": "Czarny Dunajec",
+  "powiat": "nowotarski",
+  "ofertowa_m2": 10352,
+  "ofertowa_zakres": "gmina Czarny Dunajec (wieś Koniówka)",
+  "ofertowa_data": "2026-11",
+  "ofertowa_url": "https://realadvisor.pl/pl/ceny-mieszkan/powiat-nowotarski",
+  "transakcyjna_m2": 9015,
+  "transakcyjna_zakres": "powiat nowotarski",
+  "transakcyjna_rok": 2025,
+  "transakcyjna_url": "https://bdl.stat.gov.pl/api/v1/data/by-variable/633687?unit-level=5&unit-parent-id=011200000000&year=2025&format=json"
  }
 ]
