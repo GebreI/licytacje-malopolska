@@ -245,5 +245,18 @@
   "transakcyjna_zakres": "powiat nowotarski",
   "transakcyjna_rok": 2025,
   "transakcyjna_url": "https://bdl.stat.gov.pl/api/v1/data/by-variable/633687?unit-level=5&unit-parent-id=011200000000&year=2025&format=json"
+ },
+ {
+  "miejscowosc": "Trzebinia",
+  "gmina": "Trzebinia",
+  "powiat": "chrzanowski",
+  "ofertowa_m2": 5276,
+  "ofertowa_zakres": "gmina Trzebinia",
+  "ofertowa_data": "2026-11",
+  "ofertowa_url": "https://realadvisor.pl/pl/ceny-mieszkan/powiat-chrzanowski",
+  "transakcyjna_m2": 5802,
+  "transakcyjna_zakres": "powiat chrzanowski",
+  "transakcyjna_rok": 2025,
+  "transakcyjna_url": "https://bdl.stat.gov.pl/api/v1/data/by-variable/633687?unit-level=5&unit-parent-id=011200000000&year=2025&format=json"
  }
 ]
