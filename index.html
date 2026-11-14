@@ -52,6 +52,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 .lk .lead { color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); max-width: 60rem; }
 .lk .note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 var(--cds-gap-md); max-width: 60rem; }
 .lk-fresh { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-sm); }
+.lk-fresh-txt { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs) var(--cds-gap-md); }
 .lk-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--color-ok); margin-right: 6px; }
 .lk-dot.old { background: var(--color-warn); }
 
@@ -208,6 +209,61 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 .lk-rel { display: inline-block; font-size: var(--cds-font-size-caption); border-radius: 999px; padding: 0 var(--cds-pad-sm); border: 1px solid currentColor; white-space: nowrap; }
 .lk-rel.hi { color: var(--color-ok); } .lk-rel.mid { color: var(--color-warn); } .lk-rel.lo { color: var(--color-bad); }
 .lk-hist { position: relative; min-height: 18rem; }
+/* Karta oferty: najważniejsze na górze, reszta w rozwijanych sekcjach */
+.lk-keyfacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--cds-gap-sm); margin-top: var(--cds-gap-md); }
+.lk-keyfact { background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-md); }
+.lk-keyfact .k { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-keyfact .v { font-family: var(--font-anthropic-serif); font-size: 21px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.lk-keyfact .s { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-keyfact.good .v { color: var(--color-ok); }
+.lk-keyfact.bad .v { color: var(--color-bad); }
+.lk-keyfact.warn .v, .lk-keyfact.warn .s { color: var(--color-warn); }
+.lk-actions { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); margin-top: var(--cds-gap-md); }
+.lk-actions .lk-btn { text-decoration: none; padding: var(--cds-pad-sm) var(--cds-pad-md); }
+.lk-btn.primary { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.lk-btn:hover { border-color: var(--color-fg-muted); }
+.lk-detail-main h3 { margin-top: var(--cds-gap-lg); }
+.lk-more { border-top: 1px solid var(--color-border-line); margin-top: var(--cds-gap-md); padding-top: var(--cds-gap-sm); }
+.lk-more > summary { cursor: pointer; font-weight: var(--cds-font-weight-medium); padding: var(--cds-pad-xs) 0; }
+.lk-more[open] > summary { margin-bottom: var(--cds-gap-sm); }
+.lk-more .lk-facts { margin-top: var(--cds-gap-sm); }
+.lk-opis { font-size: var(--cds-font-size-body); max-width: 60rem; }
+.lk-detail > .lk-back:last-child { margin-top: var(--cds-gap-md); }
+/* Filtry jako rozwijana karta (na telefonie domyślnie zwinięte) */
+.lk-filtry > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: var(--cds-gap-sm); }
+.lk-filtry > summary::-webkit-details-marker { display: none; }
+.lk-filtry > summary h2 { display: inline; }
+.lk-filtry > summary::after { content: "▾"; color: var(--color-fg-muted); margin-left: auto; }
+.lk-filtry:not([open]) > summary::after { content: "▸"; }
+.lk-filtry .lk-filtry-ile { margin: 0; }
+.lk-sort-mob { display: none; }
+
+/* Telefon: oferty jako kafelki zamiast szerokiej tabeli */
+@media (max-width: 640px) {
+  #dash-root { padding: 16px 12px 40px; }
+  .lk h1 { font-size: 22px; }
+  .lk-card { padding: var(--cds-pad-md); }
+  .lk-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .lk-tabs button { white-space: nowrap; padding: var(--cds-pad-sm); }
+  .lk-filters label, .lk-in, .lk-filters input, .lk-filters select { width: 100%; }
+  .lk-filters > label { flex: 1 1 100%; }
+  .lk-filters .pair input { width: 50%; }
+  #lista-ofert .lk-tablewrap { max-height: none; overflow: visible; }
+  .lk-offers thead { display: none; }
+  .lk-sort-mob { display: flex; align-items: center; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: var(--cds-gap-sm); }
+  .lk-sort-mob select { width: auto; flex: 1; }
+  .lk-offers, .lk-offers tbody { display: block; }
+  .lk-offers tbody tr { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px var(--cds-gap-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); padding: var(--cds-pad-sm) var(--cds-pad-md); margin-bottom: var(--cds-gap-sm); }
+  .lk-offers tbody tr.sel { border-color: var(--color-fg); }
+  .lk-offers tbody tr.sel td { box-shadow: none; }
+  .lk-offers td { display: block; border: 0; padding: 2px 0; text-align: left !important; }
+  .lk-offers td:first-child { grid-column: 1 / -1; }
+  .lk-offers td[data-l]::before { content: attr(data-l); display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .lk-offers td.lk-hide-narrow { display: none; }
+  .lk-date { grid-template-columns: 4.5rem 1fr; }
+  .lk-date .w { grid-column: 2; }
+  .lk-actions .lk-btn { flex: 1 1 auto; text-align: center; }
+}
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 [data-dash-source-state=empty] { color: transparent; }
 </style>
@@ -215,7 +271,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 <div class="lk" id="dashboard">
   <header id="naglowek">
     <h1>Licytacje i okazje: mieszkania do 200 tys. zł – Małopolska</h1>
-    <p class="lead">Mieszkania w województwie małopolskim do 200 000 zł: z <span class="t" data-t="licytacja">licytacji komorniczych</span>, od syndyków, z przetargów gmin, spółdzielni i instytucji, od banków oraz ze zwykłych ogłoszeń sprzedaży – z porównaniem do rynku, kalkulatorem kosztów remontu i odsprzedaży oraz poradnikiem dla początkujących. Podkreślone słowa wyjaśniają się po najechaniu lub dotknięciu.</p>
+    <p class="lead">Tanie mieszkania z <span class="t" data-t="licytacja">licytacji komorniczych</span>, przetargów i ogłoszeń – z oceną, czy opłaca się je kupić, wyremontować i sprzedać. Podkreślone słowa wyjaśniają się po najechaniu lub dotknięciu.</p>
     <p class="lk-fresh" data-source="licytacje"><span class="lk-fresh-txt">—</span></p>
   </header>
 
@@ -274,8 +330,8 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 
   <!-- OFERTY -->
   <section class="lk-page" id="oferty" hidden>
-    <div class="lk-card" id="filtry">
-      <h2>Filtry</h2>
+    <details class="lk-card lk-filtry" id="filtry" open>
+      <summary><h2>Filtry</h2> <span class="note lk-filtry-ile"></span></summary>
       <p class="note">Zawężają tabelę, wykres rynku i kalkulator.</p>
       <div class="lk-filters">
         <label><span class="t" data-t="ocena">Ocena</span>
@@ -304,11 +360,12 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
         </label>
         <button class="lk-btn f-reset" type="button">Wyczyść</button>
       </div>
-    </div>
+    </details>
 
     <div class="lk-card lk-tablecard" id="lista-ofert">
       <h2>Oferty</h2>
       <p class="note lk-count" data-source="licytacje">—</p>
+      <label class="lk-sort-mob">Sortuj: <select class="lk-in f-sort"><option value="ocena">Najlepsze na górze</option><option value="zysk">Najwyższy zysk</option><option value="cena">Najtańsze</option><option value="termin">Najbliższy termin</option><option value="vs_ogloszenia_pct">Najtaniej vs ogłoszenia</option></select></label>
       <div class="lk-tablewrap">
         <table class="lk-table lk-offers" data-source="licytacje" data-row-key="id">
           <thead><tr>
@@ -319,12 +376,12 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
             <th data-source="porownanie" data-field="vs_ofertowa_pct" class="num"><button data-sort="vs_ofertowa_pct"><span class="t" data-t="vs_ofertowe">vs gmina</span></button></th>
             <th data-source="podobne" data-field="vs_ogloszenia_pct" class="num"><button data-sort="vs_ogloszenia_pct"><span class="t" data-t="vs_ogloszenia">vs ogłoszenia</span></button></th>
             <th data-field="termin"><button data-sort="termin"><span class="t" data-t="termin">Licytacja</span></button></th>
-            <th data-field="typ" class="lk-hide-narrow"><button data-sort="typ">Typ</button></th>
+            <th data-field="zysk" class="num"><button data-sort="zysk"><span class="t" data-t="zysk">Szac. zysk</span></button></th>
           </tr></thead>
           <tbody></tbody>
         </table>
       </div>
-      <p class="note" style="margin-top: var(--cds-gap-sm)">Kliknij wiersz, żeby zobaczyć kartę oferty poniżej.</p>
+      <p class="note" style="margin-top: var(--cds-gap-sm)">Kliknij ofertę, żeby zobaczyć jej kartę poniżej.</p>
     </div>
 
     <div class="lk-card" id="karta-oferty">
@@ -517,7 +574,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 
 <script src="kalkulator/kalkulator.js?v=2026-11-14"></script>
 <script src="slownik.js?v=2026-11-14"></script>
-<script src="app.js?v=2026-11-14-2"></script>
+<script src="app.js?v=2026-11-14-3"></script>
 
 <p class="lk-footer">Dane zbierane automatycznie z publicznych źródeł (ListaPrzetargow.pl, Monitor Przetargów Adradar, RealAdvisor, GUS, Domiporta, Nieruchomości-online). Narzędzie do wstępnej selekcji ofert – nie jest poradą prawną, podatkową ani inwestycyjną. Przed wpłatą rękojmi zawsze sprawdź pełne obwieszczenie komornika i księgę wieczystą.</p>
 </div>
