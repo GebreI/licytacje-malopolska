@@ -107,7 +107,7 @@ const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) 
 const term = (key, txt) => { const s = el('span', 't', txt || (S[key] ? S[key][0] : key)); s.dataset.t = key; s.tabIndex = 0; return s; };
 const KOLORY = ['var(--s0)', 'var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)', 'var(--s7)'];
 const segColor = (i) => KOLORY[i % KOLORY.length];
-const label2 = (r) => r.miejscowosc + (r.lokalizacja ? ', ' + r.lokalizacja.replace(/\s*\(.*\)/, '') : '') + (r.udzial ? ' (udział ' + r.udzial + ')' : '');
+const label2 = (r) => r.miejscowosc + (r.lokalizacja ? ', ' + r.lokalizacja.replace(/\s*\(.*\)/, '') : '');
 
 // ===== Podpowiedzi (hover / dotknięcie) =====
 const tipEl = q('.lk-tipg');
@@ -161,60 +161,72 @@ qa('.lk-tabs button').forEach((b) => b.addEventListener('click', () => goTab(b.d
 root.addEventListener('click', (e) => { const g = e.target.closest('[data-go]'); if (g) { if (g.dataset.sel) window.lkSel = g.dataset.sel; goTab(g.dataset.go, true); } });
 
 // ===== Filtry ofert =====
+if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) q('#filtry').open = false;
 const F = { ocena: q('.f-ocena'), moje: q('.f-moje'), rodzaj: q('.f-rodzaj'), cena: q('.f-cena'), m2min: q('.f-m2min'), m2max: q('.f-m2max'), zlm2: q('.f-zlm2'), od: q('.f-od'), do: q('.f-do') };
 F.cena.value = 200000;
 Object.values(F).forEach((x) => { x.addEventListener('input', () => window.lkDraw()); x.addEventListener('change', () => window.lkDraw()); });
 q('.f-reset').addEventListener('click', () => { Object.values(F).forEach((x) => { x.value = ''; }); F.cena.value = 200000; window.lkDraw(); });
 
 // ===== Założenia kalkulatora =====
-const A = {
-  przeb: q('.a-przeb'), pcc: q('.a-pcc'), eksm: q('.a-eksm'), rmode: q('.a-rmode'), remont: q('.a-remont'), rkwota: q('.a-rkwota'),
-  mies: q('.a-mies'), utrz: q('.a-utrz'), cena: q('.a-cena'), rabat: q('.a-rabat'), prow: q('.a-prow'), pit: q('.a-pit'), cel: q('.a-cel'),
-};
-const A_DEF = { przeb: 0, pcc: true, eksm: false, rmode: 'm2', remont: 1500, rkwota: 40000, mies: 6, utrz: 10, cena: 'ofertowa', rabat: 5, prow: 2.5, pit: '1', cel: 15 };
-window.lkRF = window.lkRF || {};
-Object.values(A).forEach((x) => { x.addEventListener('input', () => window.lkDraw()); x.addEventListener('change', () => window.lkDraw()); });
+// Jeden kalkulator na całą stronę: wzory z modułu kalkulator/kalkulator.js (window.KalkulatorMieszkania).
+// Tu wybierasz tylko wariant, źródło ceny rynkowej i docelowy zwrot; szczegóły – w oknie kalkulatora mieszkania.
+const KM = window.KalkulatorMieszkania;
+const A = { wariant: q('.a-wariant'), cena: q('.a-cena'), cel: q('.a-cel') };
+const A_DEF = { wariant: 'bazowy', cena: 'ogloszenia', cel: 15 };
+const A_KEY = 'lk-zalozenia-v2';
+try { const z = JSON.parse(localStorage.getItem(A_KEY)); if (z) Object.entries(A_DEF).forEach(([k]) => { if (z[k] != null) A[k].value = z[k]; }); } catch (e) { /* brak zapisu */ }
+const zapiszA = () => { try { localStorage.setItem(A_KEY, JSON.stringify(Object.fromEntries(Object.entries(A).map(([k, x]) => [k, x.value])))); } catch (e) { /* tryb prywatny */ } };
+Object.values(A).forEach((x) => { x.addEventListener('input', () => { zapiszA(); window.lkDraw(); }); x.addEventListener('change', () => { zapiszA(); window.lkDraw(); }); });
 q('.a-reset').addEventListener('click', () => {
-  Object.entries(A_DEF).forEach(([k, v]) => { if (typeof v === 'boolean') A[k].checked = v; else A[k].value = v; });
-  Object.keys(window.lkRF).forEach((k) => delete window.lkRF[k]);
+  Object.entries(A_DEF).forEach(([k, v]) => { A[k].value = v; });
+  zapiszA();
   window.lkDraw();
 });
 const av = (x) => Math.max(0, Number(x.value) || 0);
 
 const SEG = [
   { key: 'zakup', name: 'Zakup', t: 'cena_wywolania' },
-  { key: 'oplaty', name: 'PCC i opłaty', t: 'pcc' },
+  { key: 'oplaty', name: 'Opłaty przy zakupie', t: 'pcc' },
   { key: 'remont', name: 'Remont', t: 'remont' },
   { key: 'utrzymanie', name: 'Utrzymanie', t: 'utrzymanie' },
   { key: 'sprzedaz_koszty', name: 'Koszty sprzedaży', t: 'prowizja' },
   { key: 'pit', name: 'PIT', t: 'pit' },
 ];
 
-function czescOf(r) { const [a, b] = String(r.udzial || '1/1').split('/').map(Number); return a && b ? a / b : 1; }
+// Cena rynkowa za m² wg wyboru w zakładce „Kalkulator”.
+function rynekM2Of(r) {
+  if (A.cena.value === 'transakcyjna') return r.rynek_transakcyjna_m2 || null;
+  if (A.cena.value === 'ofertowa') return r.rynek_ofertowa_m2 || null;
+  return r.og_mediana_m2 || r.rynek_ofertowa_m2 || null;
+}
+const opisRynku = (r) => {
+  const v = rynekM2Of(r);
+  if (!v) return 'brak ceny rynkowej';
+  if (A.cena.value === 'transakcyjna') return 'cena rynkowa: transakcje GUS, powiat (' + num(v) + ' zł/m²)';
+  if (A.cena.value === 'ogloszenia' && r.og_mediana_m2) return 'cena rynkowa: mediana ' + r.og_liczba + ' ogłosz. (' + num(v) + ' zł/m²)';
+  return 'cena rynkowa: ceny ofertowe w gminie (' + num(v) + ' zł/m²)';
+};
+// „Twój wariant” zapisany w oknie kalkulatora dla tego mieszkania (localStorage modułu).
+function twojWariant(id) {
+  try { const s = localStorage.getItem('kalkulator-mieszkania:' + id); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+}
+const daneKalk = (r) => ({ id: r.id, cena: r.cena, metraz: r.m2, cenaRynkowaM2: rynekM2Of(r), rodzaj: rodz(r) });
 
-// Pełne rozliczenie kupna i odsprzedaży. zakupOverride – do szukania maksymalnej ceny.
+// Rozliczenie kupna, remontu i sprzedaży (wzory: KalkulatorMieszkania.compute). zakupOverride – do szukania maksymalnej ceny.
 function flip(r, st, zakupOverride) {
-  const czesc = czescOf(r);
-  const zakup = zakupOverride != null ? zakupOverride : Number(r.cena) * (1 + av(A.przeb) / 100);
-  const pcc = A.pcc.checked ? zakup * (st.pcc ?? 2) / 100 : 0;
-  const wpis = r.udzial ? Math.max(st.wpis_kw_min_udzial ?? 100, (st.wpis_kw ?? 200) * czesc) : (st.wpis_kw ?? 200);
-  const eksm = A.eksm.checked ? (st.oproznienie ?? 1500) : 0;
-  const wlasny = window.lkRF[r.id];
-  const remontCaly = wlasny != null ? wlasny : A.rmode.value === 'kwota' ? av(A.rkwota) : av(A.remont) * Number(r.m2);
-  const remont = remontCaly * czesc;
-  const utrzymanie = av(A.utrz) * Number(r.m2) * av(A.mies) * czesc;
-  const rynekM2 = A.cena.value === 'transakcyjna' ? r.rynek_transakcyjna_m2 : A.cena.value === 'ogloszenia' ? r.og_mediana_m2 : r.rynek_ofertowa_m2;
-  if (rynekM2 == null) return null;
-  const sprzedaz = rynekM2 * Number(r.m2) * czesc * (1 - av(A.rabat) / 100);
-  const prowizja = sprzedaz * av(A.prow) / 100 * (1 + (st.vat_prowizja ?? 23) / 100);
-  const swiad = st.swiadectwo ?? 700;
-  const sprzedaz_koszty = prowizja + swiad;
-  const dochod = sprzedaz - sprzedaz_koszty - (zakup + pcc + wpis) - remont;
-  const pit = A.pit.value === '1' ? Math.max(0, dochod) * (st.pit ?? 19) / 100 : 0;
-  const oplaty = pcc + wpis + eksm;
-  const zysk = sprzedaz - zakup - oplaty - remont - utrzymanie - sprzedaz_koszty - pit;
-  const wklad = zakup + oplaty + remont + utrzymanie;
-  return { r, wlasny: wlasny != null, remontCaly, czesc, zakup, pcc, wpis, eksm, oplaty, remont, utrzymanie, sprzedaz, prowizja, swiad, sprzedaz_koszty, pit, zysk, wklad, roi: wklad ? zysk / wklad : null, rynekM2 };
+  if (!KM || !r.cena || !r.m2) return null;
+  const rynekM2 = rynekM2Of(r);
+  const wlasny = twojWariant(r.id);
+  if (!rynekM2 && !wlasny) return null;
+  const p = { ...(wlasny || KM.preset(A.wariant.value, daneKalk(r))) };
+  if (zakupOverride != null) p.cenaZakupu = zakupOverride;
+  const x = KM.compute(p);
+  const zakup = Number(p.cenaZakupu) || 0;
+  return {
+    r, wlasny: !!wlasny, p, x, zakup, oplaty: x.zakup - zakup, remont: x.remont, utrzymanie: x.utrzymanie,
+    sprzedaz_koszty: x.kosztySprzedazy, pit: x.pit, zysk: x.zyskNetto, sprzedaz: x.cenaSprzedazy,
+    wklad: x.gotowka, roi: x.roi, rynekM2, sprzedazM2: Number(p.cenaSprzedazyM2) || 0,
+  };
 }
 
 // Najwyższa cena zakupu, przy której zwrot >= cel.
@@ -227,6 +239,14 @@ function maksCena(r, st) {
   for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (ok(m)) lo = m; else hi = m; }
   return Math.floor(lo / 100) * 100;
 }
+// Okno kalkulatora mieszkania (flip, najem, wzrost wartości, Twój wariant).
+function otworzKalkulator(r) {
+  if (!KM || !r || !r.cena || !r.m2) return;
+  KM.open({ ...daneKalk(r), cenaRynkowaM2: rynekM2Of(r) || undefined, tytul: label2(r) + ' – ' + num(r.m2, 2) + ' m²', link: r.url,
+    opis: (rynekM2Of(r) ? opisRynku(r) : 'brak ceny rynkowej – przyjęto 6 500 zł/m², wpisz własną') + (isKom(r) ? ' · licytacja: bez PCC i notariusza' : '') });
+}
+// Po zamknięciu okna kalkulatora przelicz oceny (mogły się zmienić założenia „Twojego wariantu”).
+document.addEventListener('close', (e) => { if (e.target.classList && e.target.classList.contains('kalk')) window.lkDraw(); }, true);
 
 function oszacowanie(r) {
   if (r.licytacja === 'pierwsza') return Number(r.cena) / 0.75;
@@ -238,13 +258,12 @@ function oszacowanie(r) {
 function flagi(r, f) {
   const out = [];
   const u = (r.uwagi || '').toLowerCase();
-  if (r.typ === 'Udział') out.push(r.udzial ? { lvl: 'red', t: 'udzial', txt: 'Kupujesz tylko udział ' + r.udzial + ' w mieszkaniu', s: 'Nie zamieszkasz ani nie sprzedasz go swobodnie bez zgody współwłaściciela.' } : { lvl: 'red', t: 'udzial', txt: 'Udział we współwłasności zamiast odrębnego lokalu', s: 'Bez osobnej księgi wieczystej – trudniej o kredyt dla kupca i o odsprzedaż.' });
   if (u.includes('służebno')) out.push({ lvl: 'red', t: 'sluzebnosc', txt: 'Lokal obciążony służebnością mieszkania', s: 'Ktoś może mieć prawo mieszkać tu dożywotnio – wartość dla kupującego mocno spada.' });
   if (u.includes('dojazd') || u.includes('dostęp')) out.push({ lvl: 'red', t: 'dojazd', txt: 'Brak prawnie zapewnionego dojazdu', s: 'Utrudnia kredyt Twojemu przyszłemu kupcowi i obniża cenę sprzedaży.' });
   if (u.includes('węgl') || u.includes('do wymiany')) out.push({ lvl: 'yellow', t: 'remont', txt: 'Instalacje do wymiany (np. piec węglowy)', s: 'Doliczyć wyższy koszt remontu.' });
   if (f && f.zysk < 0) out.push({ lvl: 'red', t: 'zysk', txt: 'Przy obecnych założeniach strata ' + zl(Math.abs(f.zysk)), s: 'Zmień założenia w kalkulatorze albo odpuść ofertę.' });
   else if (f && f.roi < 0.1) out.push({ lvl: 'yellow', t: 'roi', txt: 'Niski zwrot: ' + pct(f.roi * 100), s: 'Mało miejsca na niespodzianki – droższy remont lub dłuższa sprzedaż zjedzą zysk.' });
-  if (!f) out.push({ lvl: 'yellow', t: 'cena_ofertowa', txt: 'Brak wybranej ceny rynkowej dla tej miejscowości', s: 'Nie da się policzyć zysku – zmień „Cenę sprzedaży” w kalkulatorze.' });
+  if (!f) out.push({ lvl: 'yellow', t: 'cena_ofertowa', txt: 'Brak wybranej ceny rynkowej dla tej miejscowości', s: 'Nie da się policzyć zysku – zmień „Cena rynkowa z” w zakładce Kalkulator albo wpisz cenę w kalkulatorze mieszkania.' });
   if (r.og_liczba != null && r.og_liczba < 3) out.push({ lvl: 'yellow', t: 'podobne', txt: r.og_liczba ? 'Tylko ' + r.og_liczba + ' ogłosz. sprzedaży w okolicy' : 'Brak aktualnych ogłoszeń sprzedaży w tej miejscowości', s: 'Rynek jest mały – sprzedaż może potrwać dłużej, a cena jest trudna do oszacowania.' });
   if (r.og_skad && r.og_skad !== r.miejscowosc) out.push({ lvl: 'info', t: 'podobne', txt: 'Porównanie z ogłoszeniami z: ' + r.og_skad, s: 'W ' + r.miejscowosc + ' nie ma ogłoszeń – to inny, zwykle droższy rynek niż wieś.' });
   const dl = dni(r.termin);
@@ -267,7 +286,7 @@ function flagi(r, f) {
   if (r.licytacja === 'druga') out.push({ lvl: 'info', t: 'druga', txt: 'Druga licytacja – niższa cena wywołania', s: 'Na pierwszej nie było chętnych. Sprawdź dlaczego.' });
   if (r.tryb === 'stacjonarna') out.push({ lvl: 'info', t: 'stacjonarna', txt: 'Licytacja stacjonarna w sądzie', s: 'Trzeba być osobiście lub wysłać pełnomocnika.' });
   if (r.tryb === 'e-licytacja') out.push({ lvl: 'info', t: 'elicytacja', txt: 'E-licytacja przez internet', s: 'Konto na licytacje.komornik.pl (Portal Obwieszczeń i Licytacji) załóż z wyprzedzeniem.' });
-  if (f && f.roi >= 0.1 && r.typ !== 'Udział') out.push({ lvl: 'green', t: 'roi', txt: 'Szacowany zwrot ' + pct(f.roi * 100), s: 'Przy obecnych założeniach z kalkulatora.' });
+  if (f && f.roi >= 0.1) out.push({ lvl: 'green', t: 'roi', txt: 'Szacowany zwrot ' + pct(f.roi * 100), s: 'Przy obecnych założeniach z kalkulatora.' });
   return out;
 }
 function ocena(fl) {
@@ -410,10 +429,11 @@ qa('.lk-offers th button[data-sort]').forEach((b) => b.addEventListener('click',
   if (window.lkSort.k === k) window.lkSort.dir *= -1; else window.lkSort = { k, dir: 1 };
   window.lkDraw();
 }));
+q('.f-sort').addEventListener('change', (e) => { window.lkSort = { k: e.target.value, dir: 1 }; window.lkDraw(); });
 q('.lk-offers tbody').addEventListener('click', (e) => {
   if (e.target.closest('a,.t,.lk-badge,[data-mark]')) return;
   const tr = e.target.closest('tr[data-key]');
-  if (tr) { window.lkSel = tr.dataset.key; window.lkDraw(); q('#karta-oferty').scrollIntoView({ block: 'nearest' }); }
+  if (tr) { window.lkSel = tr.dataset.key; window.lkDraw(); q('#karta-oferty').scrollIntoView({ block: 'start', behavior: 'smooth' }); }
 });
 // Przycisk „Wróć do listy ofert” w karcie oferty – przewija do zaznaczonego wiersza w tabeli.
 const backBtn = () => { const b = el('button', 'lk-btn lk-back', '↑ Wróć do listy ofert'); b.type = 'button'; b.dataset.back = '1'; return b; };
@@ -423,12 +443,18 @@ root.addEventListener('click', (e) => {
   (tr || q('#lista-ofert')).scrollIntoView({ block: tr ? 'center' : 'start', behavior: 'smooth' });
 });
 
+// Podpisy kolumn widoczne w kafelkach na telefonie (kolejność jak w tabeli).
+const KOL = [null, 'Cena', 'm²', 'zł/m²', 'vs gmina', 'vs ogłoszenia', 'Termin', 'Szac. zysk'];
 function drawOferty(D, rows) {
-  q('.lk-count').textContent = `Pokazano ${rows.length} z ${D.rows.length}. Sortuj, klikając nagłówek. Domyślnie najlepsze na górze.`;
-  const { k, dir } = window.lkSort;
+  const akt = Object.entries(F).filter(([k, x]) => x.value !== '' && !(k === 'cena' && Number(x.value) === 200000)).length;
+  q('.lk-filtry-ile').textContent = akt ? 'aktywne: ' + akt : '';
+  q('.lk-count').textContent = `Pokazano ${rows.length} z ${D.rows.length}.` + (window.matchMedia('(max-width: 640px)').matches ? '' : ' Sortuj, klikając nagłówek. Domyślnie najlepsze na górze.');
+  if ([...q('.f-sort').options].some((o) => o.value === window.lkSort.k)) q('.f-sort').value = window.lkSort.k;
+  const { k } = window.lkSort;
+  const dir = k === 'zysk' ? -window.lkSort.dir : window.lkSort.dir; // zysk: pierwszy klik = najwyższy na górze
   const sorted = rows.slice().sort((a, b) => {
     if (k === 'ocena') return best(a, b) * dir;
-    let x = a[k], y = b[k];
+    let x = k === 'zysk' ? (a.f ? a.f.zysk : null) : a[k], y = k === 'zysk' ? (b.f ? b.f.zysk : null) : b[k];
     if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
     if (typeof x === 'number' || typeof y === 'number') return (Number(x) - Number(y)) * dir;
     return String(x).localeCompare(String(y), 'pl') * dir;
@@ -440,7 +466,8 @@ function drawOferty(D, rows) {
     tr.dataset.key = r.id;
     const mj = moje(r.id);
     tr.className = [r.id === window.lkSel ? 'sel' : '', mj.odrz ? 'odrz' : ''].filter(Boolean).join(' ');
-    const td = (cls) => { const c = el('td', cls); tr.appendChild(c); return c; };
+    let ti = 0;
+    const td = (cls) => { const c = el('td', cls); const l = KOL[ti++]; if (l) c.dataset.l = l; tr.appendChild(c); return c; };
     const a = td();
     const nm = el('div', 'lk-name');
     nm.append(markBtn(r, 'gw'), markBtn(r, 'odrz'), el('span', null, r.miejscowosc));
@@ -450,7 +477,6 @@ function drawOferty(D, rows) {
     tags.appendChild(badge(r.oc));
     if (isNew(r)) { const t = el('span', 'lk-tag new', 'nowa'); tags.appendChild(t); }
     if (!isKom(r)) tags.appendChild(el('span', 'lk-tag', RODZ_K[rodz(r)]));
-    if (r.typ === 'Udział') { const t = el('span', 'lk-tag bad', r.udzial ? 'udział ' + r.udzial : 'udział'); t.dataset.t = 'udzial'; tags.appendChild(t); }
     if (mj.odrz) tags.appendChild(el('span', 'lk-tag bad', 'odrzucona'));
     a.appendChild(tags);
     if ((mj.kom || '').trim()) { const k = mj.kom.trim(); a.appendChild(el('span', 'small lk-kom', '✎ ' + (k.length > 70 ? k.slice(0, 70) + '…' : k))); }
@@ -463,7 +489,7 @@ function drawOferty(D, rows) {
     const t = td();
     t.textContent = r.termin ? dataPL(r.termin) : isKom(r) ? 'brak daty' : r.termin_wadium ? 'wadium ' + dataKr(r.termin_wadium) : '—';
     if (r.tryb) t.appendChild(el('span', 'small', r.tryb));
-    td('lk-hide-narrow').textContent = r.typ;
+    const zc = td('num'); if (r.f) { zc.appendChild(el('span', 'lk-pct ' + (r.f.zysk >= 0 ? 'good' : 'bad'), zlk(r.f.zysk))); if (r.f.wlasny) zc.appendChild(el('span', 'small', 'Twój wariant ✎')); } else zc.textContent = '—';
     return tr;
   }));
   qa('.lk-offers th').forEach((th) => { const b = th.querySelector('button'); th.setAttribute('aria-sort', b && b.dataset.sort === k ? (dir > 0 ? 'ascending' : 'descending') : 'none'); });
@@ -474,55 +500,45 @@ function drawDetail(D, r) {
   const box = q('.lk-detail');
   box.replaceChildren();
   if (!r) { box.appendChild(el('div', 'lk-empty', 'Wybierz ofertę z tabeli.')); return; }
+  const mj = moje(r.id);
+  const osz = oszacowanie(r);
+  const mx = r.f ? maksCena(r, D.st) : null;
+
+  // --- Nagłówek: nazwa, rodzaj, ocena ---
+  box.appendChild(backBtn());
   const head = el('div', 'lk-detail-head');
   const h = el('div'); h.appendChild(el('h2', null, label2(r)));
-  h.appendChild(el('p', 'note', RODZ[rodz(r)] + ' · ' + (r.uwagi || '') + (r.sprawdzono ? ' · sprawdzono ' + dataKr(r.sprawdzono) : '')));
+  h.appendChild(el('p', 'note', RODZ[rodz(r)] + ' · ' + num(r.m2, 2) + ' m²' + (r.pokoje ? ' · ' + r.pokoje + ' pok.' : '') + (r.sprawdzono ? ' · sprawdzono ' + dataKr(r.sprawdzono) : '')));
   head.append(h, badge(r.oc));
-  box.appendChild(backBtn());
   box.appendChild(head);
 
-  const mj = moje(r.id);
-  const sec = el('div', 'lk-moje');
-  const btns = el('div', 'lk-moje-btns');
-  const tb = (k, txtOn, txtOff) => { const on = !!mj[k]; const b = el('button', 'lk-btn ' + k + (on ? ' on' : ''), on ? txtOn : txtOff); b.type = 'button'; b.dataset.mark = k; b.dataset.id = r.id; b.setAttribute('aria-pressed', String(on)); return b; };
-  btns.append(tb('gw', '★ Obserwujesz', '☆ Obserwuj'), tb('odrz', '✕ Odrzucona', '✕ Odrzuć'));
-  const lab = el('label', 'lk-moje-kom');
-  const ta = document.createElement('textarea');
-  ta.className = 'lk-in'; ta.rows = 3; ta.value = mj.kom || ''; ta.placeholder = 'Np. dzwoniłem do komornika, lokal zamieszkany, obejrzeć w sobotę…';
-  ta.addEventListener('input', () => zapiszMoje(r.id, { kom: ta.value }));
-  lab.append(el('span', null, 'Twój komentarz'), ta);
-  sec.append(btns, lab, el('p', 'note', 'Oznaczenia i komentarze zapisują się tylko w tej przeglądarce, na tym urządzeniu.'));
-  box.appendChild(sec);
-
-  const facts = el('div', 'lk-facts');
-  const fact = (t, k, v, s) => { const f = el('div', 'lk-fact'); const kk = el('div', 'k'); kk.appendChild(term(t, k)); f.append(kk, el('div', 'v', v)); if (s) f.appendChild(el('div', 's', s)); facts.appendChild(f); };
-  const osz = oszacowanie(r);
-  fact('cena_wywolania', nazwaCeny(r), zl(r.cena), isKom(r) && r.licytacja ? (r.licytacja === 'pierwsza' ? '3/4 sumy oszacowania' : '2/3 sumy oszacowania') : isKom(r) ? null : RODZ[rodz(r)]);
-  if (isKom(r)) {
-    fact('suma_oszacowania', 'Suma oszacowania', osz ? '~' + zl(osz) : '—', osz ? 'szacunek z ceny wywołania' : 'sprawdź w obwieszczeniu');
-    fact('rekojmia', 'Rękojmia do wpłaty', osz ? '~' + zl(osz / 10) : '—', osz ? '1/10 sumy oszacowania' : 'sprawdź w obwieszczeniu');
-    fact('termin', 'Licytacja', r.termin ? dataPL(r.termin) : 'brak daty', [r.licytacja ? r.licytacja + ' licytacja' : '', r.tryb].filter(Boolean).join(' · ') || null);
-    fact('termin_rekojmi', 'Termin rękojmi', r.termin_wadium ? dataPL(r.termin_wadium) : '—', r.termin_wadium ? (dni(r.termin_wadium) >= 0 ? 'za ' + dni(r.termin_wadium) + ' dni' : 'minął') : 'brak w źródle');
-    fact('komornik', 'Komornik', r.komornik || 'brak w danych', r.komornik ? null : 'automat dopisze go z Adradar');
-    if (r.sygnatura) fact('sygnatura', 'Sygnatura', r.sygnatura, 'podaj ją, dzwoniąc do kancelarii');
-  } else if (!isOgl(r)) {
-    fact('termin', nazwaTerminu(r), r.termin ? dataPL(r.termin) : 'brak daty', r.termin ? null : 'sprawdź w ogłoszeniu');
-    fact('termin_rekojmi', 'Termin wadium', r.termin_wadium ? dataPL(r.termin_wadium) : '—', r.termin_wadium ? (dni(r.termin_wadium) >= 0 ? 'za ' + dni(r.termin_wadium) + ' dni' : 'minął') : 'brak w źródle');
-  }
-  fact('zl_m2', 'Powierzchnia', num(r.m2, 2) + ' m²', (r.pokoje ? r.pokoje + ' pok. · ' : '') + num(r.cena_m2) + ' zł/m²');
-  fact('vs_ofertowe', 'Taniej niż w ogłoszeniach', pct(r.vs_ofertowa_pct), r.rynek_ofertowa_m2 ? 'rynek: ' + num(r.rynek_ofertowa_m2) + ' zł/m²' : null);
-  fact('vs_ogloszenia', 'Vs podobne ogłoszenia', pct(r.vs_ogloszenia_pct), r.og_mediana_m2 ? 'mediana ' + num(r.og_mediana_m2) + ' zł/m² · ' + r.og_liczba + ' ogł. (' + r.og_dopasowanie + ')' : 'brak ogłoszeń w okolicy');
-  if (r.og_wartosc) fact('podobne', 'Wartość wg ogłoszeń', '~' + zl(r.og_wartosc), r.udzial ? 'za udział ' + r.udzial : 'gdyby kosztowało jak podobne');
-  fact('vs_transakcyjne', 'Taniej niż w transakcjach', pct(r.vs_transakcyjna_pct), r.rynek_transakcyjna_m2 ? 'GUS: ' + num(r.rynek_transakcyjna_m2) + ' zł/m²' : null);
-  if (r.trend) fact('trend', 'Ceny w powiecie ' + r.trend.rok_od + '–' + r.trend.rok_do, pct(r.trend.wzrost_10l_pct), 'śr. ' + num(r.trend.srednio_rocznie_pct, 1) + '% rocznie · ' + (r.trend.transakcje_2024 == null ? 'brak danych o transakcjach' : num(r.trend.transakcje_2024) + ' transakcji w 2024'));
+  // --- Najważniejsze liczby ---
+  const sum = el('div', 'lk-keyfacts');
+  const kf = (t, k, v, s, cls) => { const f = el('div', 'lk-keyfact' + (cls ? ' ' + cls : '')); const kk = el('div', 'k'); kk.appendChild(term(t, k)); f.append(kk, el('div', 'v', v)); if (s) f.appendChild(el('div', 's', s)); sum.appendChild(f); };
+  kf('cena_wywolania', nazwaCeny(r), zl(r.cena), num(r.cena_m2) + ' zł/m²');
   if (r.f) {
-    fact('zysk', 'Szacowany zysk', zlk(r.f.zysk), 'zwrot ' + pct(r.f.roi * 100) + ' · wkład ' + zlk(r.f.wklad));
-    const mx = maksCena(r, D.st);
-    fact('maks_cena', isOgl(r) ? 'Maks. cena do zapłaty' : isKom(r) ? 'Maks. cena do licytowania' : 'Maks. cena w ofercie', mx ? zl(mx) : 'nie opłaca się', mx ? (mx >= r.cena ? pct((mx / r.cena - 1) * 100) + ' ponad wywołanie' : 'poniżej ceny wywołania!') : 'przy celu ' + av(A.cel) + '% zwrotu');
-  }
-  box.appendChild(facts);
+    kf('maks_cena', isOgl(r) ? 'Maks. cena do zapłaty' : isKom(r) ? 'Maks. cena do licytowania' : 'Maks. cena w ofercie', mx ? zl(mx) : 'nie opłaca się',
+      mx ? (mx >= r.cena ? pct((mx / r.cena - 1) * 100) + ' ponad cenę' : 'poniżej ceny – odpuść') : 'przy celu ' + av(A.cel) + '% zwrotu', mx && mx >= r.cena ? 'good' : 'bad');
+    kf('zysk', 'Szacowany zysk', zlk(r.f.zysk), 'zwrot ' + pct(r.f.roi * 100) + (r.f.wlasny ? ' · Twój wariant ✎' : ' · wariant ' + A.wariant.value), r.f.zysk >= 0 ? 'good' : 'bad');
+  } else kf('zysk', 'Szacowany zysk', '—', 'brak ceny rynkowej');
+  // Najbliższy termin, który trzeba pilnować.
+  const terminy = [[r.termin_wadium, nazwaWadium(r), 'termin_rekojmi'], [r.termin, nazwaTerminu(r), 'termin']].filter(([d]) => d && dni(d) >= 0).sort((a, b) => a[0].localeCompare(b[0]));
+  if (terminy.length) { const [d, n, t] = terminy[0]; const x = dni(d); kf(t, n, dataPL(d), x === 0 ? 'dziś!' : x === 1 ? 'jutro!' : 'za ' + x + ' dni', x <= 7 ? 'warn' : null); }
+  else kf('termin', isOgl(r) ? 'Termin' : 'Najbliższy termin', isOgl(r) ? 'bez terminu' : 'brak daty', isOgl(r) ? 'zwykła sprzedaż' : 'sprawdź w ogłoszeniu');
+  kf('vs_ogloszenia', 'Taniej niż podobne', pct(r.vs_ogloszenia_pct), r.og_mediana_m2 ? 'mediana ' + num(r.og_mediana_m2) + ' zł/m²' : 'brak ogłoszeń w okolicy');
+  box.appendChild(sum);
 
-  const g = el('div', 'lk-grid'); g.style.marginTop = 'var(--cds-gap-lg)';
+  // --- Główne akcje ---
+  const act = el('div', 'lk-actions');
+  const btnLink = (href, txt, cls) => { const a = el('a', 'lk-btn' + (cls ? ' ' + cls : ''), txt); a.href = href; a.target = '_blank'; a.rel = 'noopener'; act.appendChild(a); };
+  if (r.url) btnLink(r.url, 'Otwórz ogłoszenie ↗', 'primary');
+  if (KM && r.cena && r.m2) { const kb = el('button', 'lk-btn', 'Kalkulator tego mieszkania'); kb.type = 'button'; kb.addEventListener('click', () => otworzKalkulator(r)); act.appendChild(kb); }
+  const tb = (k, txtOn, txtOff) => { const on = !!mj[k]; const b = el('button', 'lk-btn ' + k + (on ? ' on' : ''), on ? txtOn : txtOff); b.type = 'button'; b.dataset.mark = k; b.dataset.id = r.id; b.setAttribute('aria-pressed', String(on)); return b; };
+  act.append(tb('gw', '★ Obserwujesz', '☆ Obserwuj'), tb('odrz', '✕ Odrzucona', '✕ Odrzuć'));
+  box.appendChild(act);
+
+  // --- Ryzyka i co zrobić ---
+  const g = el('div', 'lk-grid lk-detail-main');
   const c1 = el('div'); c1.appendChild(el('h3', null, 'Ryzyka i plusy'));
   const ul = el('ul', 'lk-flags');
   r.fl.forEach((x) => { const li = el('li', x.lvl); li.appendChild(el('span', 'i')); const sp = el('span'); sp.appendChild(term(x.t, x.txt)); sp.appendChild(el('span', 's', x.s)); li.appendChild(sp); ul.appendChild(li); });
@@ -530,11 +546,12 @@ function drawDetail(D, r) {
   const c2 = el('div'); c2.appendChild(el('h3', null, 'Co zrobić teraz'));
   const ol = el('ol', 'lk-todo');
   const todo = [];
+  const kalkTxt = 'Otwórz „Kalkulator tego mieszkania”, wpisz realny remont i sprawdź maksymalną cenę.';
   if (isKom(r)) {
     todo.push('Otwórz ogłoszenie i znajdź pełne obwieszczenie komornika (numer KW, sygnatura, dokładna rękojmia).');
     todo.push('Sprawdź księgę wieczystą na ekw.ms.gov.pl – dział III i IV.');
     todo.push('Umów się na oględziny i przeczytaj operat w kancelarii komornika.');
-    todo.push('Ustaw w kalkulatorze realny remont dla tego mieszkania i sprawdź maksymalną cenę.');
+    todo.push(kalkTxt);
     if (r.tryb === 'e-licytacja') todo.push('Załóż konto na licytacje.komornik.pl (Portal Obwieszczeń i Licytacji) i potwierdź tożsamość z wyprzedzeniem.');
     if (r.termin_wadium && dni(r.termin_wadium) >= 0) todo.push('Wpłać rękojmię najpóźniej ' + dataPL(r.termin_wadium) + ' – i miej gotówkę na resztę ceny.');
     else todo.push('Wpłać rękojmię w terminie z obwieszczenia – i miej gotówkę na resztę ceny.');
@@ -542,12 +559,12 @@ function drawDetail(D, r) {
     todo.push('Zadzwoń do sprzedającego: forma własności (odrębna KW czy udział), kto jest zameldowany, czynsz i fundusz remontowy.');
     todo.push('Sprawdź księgę wieczystą na ekw.ms.gov.pl – dział III i IV.');
     todo.push('Obejrzyj lokal i budynek; zapytaj spółdzielnię/wspólnotę o planowane remonty.');
-    todo.push('Ustaw w kalkulatorze realny remont i negocjuj cenę poniżej wyliczonej maksymalnej.');
+    todo.push('Otwórz „Kalkulator tego mieszkania”, wpisz realny remont i negocjuj cenę poniżej wyliczonej maksymalnej.');
   } else {
     todo.push('Otwórz ogłoszenie i pobierz regulamin przetargu (cena netto/brutto, VAT, wadium, sposób składania ofert).');
     todo.push('Sprawdź księgę wieczystą na ekw.ms.gov.pl – dział III i IV.');
     todo.push('Umów oględziny u organizatora (syndyka, gminy, spółdzielni) i zapytaj o operat szacunkowy.');
-    todo.push('Ustaw w kalkulatorze realny remont dla tego mieszkania i sprawdź maksymalną cenę.');
+    todo.push(kalkTxt);
     if (r.termin_wadium && dni(r.termin_wadium) >= 0) todo.push('Wpłać wadium najpóźniej ' + dataPL(r.termin_wadium) + ' i złóż ofertę w terminie.');
     else todo.push('Wpłać wadium i złóż ofertę w terminie z ogłoszenia.');
   }
@@ -556,15 +573,55 @@ function drawDetail(D, r) {
   g.append(c1, c2);
   box.appendChild(g);
 
+  // --- Szczegóły w rozwijanych sekcjach ---
+  const sekcja = (tytul, open) => { const d = el('details', 'lk-more'); if (open) d.open = true; d.appendChild(el('summary', null, tytul)); box.appendChild(d); return d; };
+  const factsIn = (parent) => { const facts = el('div', 'lk-facts'); parent.appendChild(facts); return (t, k, v, s) => { const f = el('div', 'lk-fact'); const kk = el('div', 'k'); kk.appendChild(term(t, k)); f.append(kk, el('div', 'v', v)); if (s) f.appendChild(el('div', 's', s)); facts.appendChild(f); }; };
+
+  // Notatki
+  const sN = sekcja('Twoje notatki' + ((mj.kom || '').trim() ? ' ✎' : ''), !!(mj.kom || '').trim());
+  const lab = el('label', 'lk-moje-kom');
+  const ta = document.createElement('textarea');
+  ta.className = 'lk-in'; ta.rows = 3; ta.value = mj.kom || ''; ta.placeholder = 'Np. dzwoniłem do komornika, lokal zamieszkany, obejrzeć w sobotę…';
+  ta.addEventListener('input', () => zapiszMoje(r.id, { kom: ta.value }));
+  lab.append(el('span', null, 'Twój komentarz'), ta);
+  sN.append(lab, el('p', 'note', 'Oznaczenia i komentarze zapisują się tylko w tej przeglądarce, na tym urządzeniu.'));
+
+  // Opis i szczegóły sprzedaży
+  const sS = sekcja(isKom(r) ? 'Opis i szczegóły licytacji' : isOgl(r) ? 'Opis ogłoszenia' : 'Opis i szczegóły przetargu');
+  if (r.uwagi) sS.appendChild(el('p', 'lk-opis', r.uwagi));
+  const fS = factsIn(sS);
+  fS('cena_wywolania', nazwaCeny(r), zl(r.cena), isKom(r) && r.licytacja ? (r.licytacja === 'pierwsza' ? '3/4 sumy oszacowania' : '2/3 sumy oszacowania') : isKom(r) ? null : RODZ[rodz(r)]);
+  if (isKom(r)) {
+    fS('suma_oszacowania', 'Suma oszacowania', osz ? '~' + zl(osz) : '—', osz ? 'szacunek z ceny wywołania' : 'sprawdź w obwieszczeniu');
+    fS('rekojmia', 'Rękojmia do wpłaty', osz ? '~' + zl(osz / 10) : '—', osz ? '1/10 sumy oszacowania' : 'sprawdź w obwieszczeniu');
+    fS('termin', 'Licytacja', r.termin ? dataPL(r.termin) : 'brak daty', [r.licytacja ? r.licytacja + ' licytacja' : '', r.tryb].filter(Boolean).join(' · ') || null);
+    fS('termin_rekojmi', 'Termin rękojmi', r.termin_wadium ? dataPL(r.termin_wadium) : '—', r.termin_wadium ? (dni(r.termin_wadium) >= 0 ? 'za ' + dni(r.termin_wadium) + ' dni' : 'minął') : 'brak w źródle');
+    fS('komornik', 'Komornik', r.komornik || 'brak w danych', r.komornik ? null : 'automat dopisze go z Adradar');
+    if (r.sygnatura) fS('sygnatura', 'Sygnatura', r.sygnatura, 'podaj ją, dzwoniąc do kancelarii');
+  } else if (!isOgl(r)) {
+    fS('termin', nazwaTerminu(r), r.termin ? dataPL(r.termin) : 'brak daty', r.termin ? null : 'sprawdź w ogłoszeniu');
+    fS('termin_rekojmi', 'Termin wadium', r.termin_wadium ? dataPL(r.termin_wadium) : '—', r.termin_wadium ? (dni(r.termin_wadium) >= 0 ? 'za ' + dni(r.termin_wadium) + ' dni' : 'minął') : 'brak w źródle');
+  }
+  fS('zl_m2', 'Powierzchnia', num(r.m2, 2) + ' m²', (r.pokoje ? r.pokoje + ' pok. · ' : '') + num(r.cena_m2) + ' zł/m²');
+
+  // Na tle rynku
+  const sR = sekcja('Na tle rynku');
+  const fR = factsIn(sR);
+  fR('vs_ofertowe', 'Taniej niż w ogłoszeniach (gmina)', pct(r.vs_ofertowa_pct), r.rynek_ofertowa_m2 ? 'rynek: ' + num(r.rynek_ofertowa_m2) + ' zł/m²' : null);
+  fR('vs_ogloszenia', 'Vs podobne ogłoszenia', pct(r.vs_ogloszenia_pct), r.og_mediana_m2 ? 'mediana ' + num(r.og_mediana_m2) + ' zł/m² · ' + r.og_liczba + ' ogł. (' + r.og_dopasowanie + ')' : 'brak ogłoszeń w okolicy');
+  if (r.og_wartosc) fR('podobne', 'Wartość wg ogłoszeń', '~' + zl(r.og_wartosc), 'gdyby kosztowało jak podobne');
+  fR('vs_transakcyjne', 'Taniej niż w transakcjach', pct(r.vs_transakcyjna_pct), r.rynek_transakcyjna_m2 ? 'GUS: ' + num(r.rynek_transakcyjna_m2) + ' zł/m²' : null);
+  if (r.trend) fR('trend', 'Ceny w powiecie ' + r.trend.rok_od + '–' + r.trend.rok_do, pct(r.trend.wzrost_10l_pct), 'śr. ' + num(r.trend.srednio_rocznie_pct, 1) + '% rocznie · ' + (r.trend.transakcje_2024 == null ? 'brak danych o transakcjach' : num(r.trend.transakcje_2024) + ' transakcji w 2024'));
+  if (r.f) fR('wklad', 'Potrzebna gotówka', zl(r.f.wklad), 'zakup, opłaty, remont i utrzymanie');
+
   const naj = (r.og_najblizsze || '').split(',').filter(Boolean).map((id) => D.ogl.find((o) => o.id === id)).filter(Boolean);
   if (naj.length) {
-    const sec = el('div'); sec.style.marginTop = 'var(--cds-gap-lg)';
-    const h3 = el('h3'); h3.appendChild(term('podobne', 'Najbardziej podobne ogłoszenia sprzedaży')); sec.appendChild(h3);
+    const sec = sekcja('Podobne ogłoszenia sprzedaży (' + naj.length + ')');
     sec.appendChild(el('p', 'note', 'Aktualne ogłoszenia z rynku wtórnego' + (r.og_skad ? ' (' + r.og_skad + ')' : '') + ', najbliższe metrażem. Pobrane ' + dataKr(naj[0].pobrano) + '. To ceny, jakich chcą sprzedający – transakcje zwykle zamykają się trochę niżej.'));
     const w = el('div', 'lk-tablewrap'); const t = el('table', 'lk-table plain'); const hd = el('thead'); const hr = el('tr');
     [['Mieszkanie'], ['Cena', 'num'], ['m²', 'num'], ['zł/m²', 'num'], ['vs ta oferta', 'num'], ['']].forEach(([n, c]) => hr.appendChild(el('th', c || null, n)));
     hd.appendChild(hr); t.appendChild(hd);
-    const tb = el('tbody');
+    const tbd = el('tbody');
     naj.forEach((o) => {
       const tr = el('tr');
       const a = el('td'); a.appendChild(el('div', null, o.miejscowosc + (o.lokalizacja ? ', ' + o.lokalizacja : ''))); a.appendChild(el('span', 'small', (o.pokoje ? o.pokoje + ' pok. · ' : '') + o.zrodlo)); tr.appendChild(a);
@@ -574,11 +631,13 @@ function drawDetail(D, r) {
       const dd = r.cena_m2_calosc ? Math.round((r.cena_m2_calosc / o.cena_m2 - 1) * 100) : null;
       const x = el('td', 'num'); x.appendChild(el('span', 'lk-pct ' + (dd == null ? '' : dd <= -15 ? 'good' : dd >= 0 ? 'bad' : ''), pct(dd))); tr.appendChild(x);
       const l = el('td'); const an = el('a', null, 'Zobacz ↗'); an.href = o.url; an.target = '_blank'; an.rel = 'noopener'; l.appendChild(an); tr.appendChild(l);
-      tb.appendChild(tr);
+      tbd.appendChild(tr);
     });
-    t.appendChild(tb); w.appendChild(t); sec.appendChild(w); box.appendChild(sec);
+    t.appendChild(tbd); w.appendChild(t); sec.appendChild(w);
   }
 
+  // Linki do źródeł
+  const sL = sekcja('Linki: ogłoszenie, księga wieczysta, komornik', true);
   const links = el('div', 'lk-links');
   const link = (href, txt) => { const a = el('a', null, txt); a.href = href; a.target = '_blank'; a.rel = 'noopener'; links.appendChild(a); };
   if (r.url) link(r.url, 'Ogłoszenie ↗');
@@ -605,22 +664,10 @@ function drawDetail(D, r) {
   }
   if (rodz(r) === 'przetarg') link(google('przetarg mieszkanie ' + gdzie + ' BIP'), 'Szukaj w BIP ↗');
   if (rodz(r) === 'syndyk') { link('https://krz.ms.gov.pl/', 'Rejestr Zadłużonych (KRZ) ↗'); link(google('syndyk sprzedaż mieszkanie ' + gdzie + ' obwieszczenie'), 'Szukaj ogłoszenia syndyka ↗'); }
-  const calc = el('button', 'lk-link', 'Policz w kalkulatorze →'); calc.dataset.go = 'kalkulator'; calc.addEventListener('click', () => { window.lkWf = r.id; });
+  const calc = el('button', 'lk-link', 'Porównaj z innymi w zakładce Kalkulator →'); calc.dataset.go = 'kalkulator'; calc.addEventListener('click', () => { window.lkWf = r.id; });
   links.appendChild(calc);
-  // Kalkulator inwestycji (moduł kalkulator/kalkulator.js): flip, najem i wzrost wartości w 3 wariantach + Twój.
-  if (window.KalkulatorMieszkania && r.cena && r.m2) {
-    const rynekM2 = r.og_mediana_m2 || r.rynek_ofertowa_m2 || null;
-    const zrodloRynku = r.og_mediana_m2 ? 'cena rynkowa: mediana ' + r.og_liczba + ' ogłosz. (' + num(r.og_mediana_m2) + ' zł/m²)' : r.rynek_ofertowa_m2 ? 'cena rynkowa: RealAdvisor, gmina (' + num(r.rynek_ofertowa_m2) + ' zł/m²)' : 'brak ceny rynkowej – przyjęto 6 500 zł/m² (Oświęcim)';
-    const kb = el('button', 'lk-link', 'Kalkulator inwestycji: flip, najem →');
-    kb.type = 'button';
-    kb.addEventListener('click', () => window.KalkulatorMieszkania.open({
-      id: r.id, tytul: label2(r) + ' – ' + num(r.m2, 2) + ' m²', link: r.url, cena: r.cena, metraz: r.m2,
-      cenaRynkowaM2: rynekM2, rodzaj: rodz(r), opis: zrodloRynku + (isKom(r) ? ' · licytacja: bez PCC i notariusza' : ''),
-    }));
-    links.appendChild(kb);
-  }
-  links.appendChild(backBtn());
-  box.appendChild(links);
+  sL.appendChild(links);
+  box.appendChild(backBtn());
 }
 
 // ===== RYNEK =====
@@ -629,14 +676,14 @@ function drawLegend(box, items) {
   items.forEach(([n, c, line]) => { const it = el('span', 'lk-leg'); const sw = el('i', line ? 'line' : null); sw.style.background = c; it.append(sw, document.createTextNode(n)); box.appendChild(it); });
 }
 function drawRynek(D, rows) {
-  drawLegend(q('.lk-mkt-legend'), [['Oferta (za całość)', KOLORY[0]], ['Udział (przeliczony)', 'var(--cds-chart-muted)'], ['Cena ofertowa', 'var(--cds-chart-reference)', 1], ['Cena transakcyjna', 'var(--color-warn)', 1], ['Podobne ogłoszenia', 'var(--color-ok)', 1]]);
+  drawLegend(q('.lk-mkt-legend'), [['Oferta', KOLORY[0]], ['Cena ofertowa', 'var(--cds-chart-reference)', 1], ['Cena transakcyjna', 'var(--color-warn)', 1], ['Podobne ogłoszenia', 'var(--color-ok)', 1]]);
   const box = q('.lk-chart');
   box.replaceChildren();
   const data = rows.filter((r) => r.cena_m2_calosc != null).sort((a, b) => (a.vs_ofertowa_pct ?? 999) - (b.vs_ofertowa_pct ?? 999));
   if (!data.length) { box.appendChild(el('div', 'lk-empty', 'Brak ofert dla wybranych filtrów.')); }
   else {
     const W = box.clientWidth || 600, rowH = 34;
-    const label = (r) => r.miejscowosc + (r.udzial ? ' (udz. ' + r.udzial + ')' : '');
+    const label = (r) => r.miejscowosc;
     const svg = d3.select(box).append('svg').attr('width', '100%');
     const meas = svg.append('g'); let lw = 0;
     data.forEach((r) => { lw = Math.max(lw, meas.append('text').attr('font-size', 12).text(label(r)).node().getComputedTextLength()); });
@@ -653,7 +700,7 @@ function drawRynek(D, rows) {
     const tip = el('div', 'lk-tip'); tip.hidden = true; box.appendChild(tip);
     const g = svg.append('g').selectAll('g').data(data).join('g');
     g.append('text').attr('x', m.l - 8).attr('y', (d) => y(d.id) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(label);
-    g.append('rect').attr('x', m.l).attr('y', (d) => y(d.id)).attr('height', y.bandwidth()).attr('rx', 4).attr('width', (d) => Math.max(2, x(d.cena_m2_calosc) - m.l)).attr('fill', (d) => d.typ === 'Udział' ? 'var(--cds-chart-muted)' : KOLORY[0]);
+    g.append('rect').attr('x', m.l).attr('y', (d) => y(d.id)).attr('height', y.bandwidth()).attr('rx', 4).attr('width', (d) => Math.max(2, x(d.cena_m2_calosc) - m.l)).attr('fill', KOLORY[0]);
     const tick = (key, color) => g.filter((d) => d[key] != null).append('line').attr('x1', (d) => x(d[key])).attr('x2', (d) => x(d[key])).attr('y1', (d) => y(d.id) - 4).attr('y2', (d) => y(d.id) + y.bandwidth() + 4).attr('stroke', color).attr('stroke-width', 3).attr('stroke-linecap', 'round');
     tick('rynek_ofertowa_m2', 'var(--cds-chart-reference)');
     tick('rynek_transakcyjna_m2', 'var(--color-warn)');
@@ -788,7 +835,8 @@ function drawFlip(D, rows) {
   box.replaceChildren();
   const data = rows.map((r) => r.f).filter(Boolean).sort((a, b) => b.zysk - a.zysk);
   window.lkFlipData = data;
-  const short = (r) => r.miejscowosc + (r.udzial ? ' (udz. ' + r.udzial + ')' : '') + (window.lkRF[r.id] != null ? ' ✎' : '');
+  const d0 = (r) => r.f;
+  const short = (r) => r.miejscowosc + (d0(r) && d0(r).wlasny ? ' ✎' : '');
   if (!data.length) { box.appendChild(el('div', 'lk-empty', 'Brak ofert z ceną rynkową dla wybranych filtrów.')); }
   else {
     const W = box.clientWidth || 600, rowH = 36;
@@ -837,7 +885,7 @@ function drawFlip(D, rows) {
   mx.replaceChildren();
   const tbl = el('table', 'lk-table plain');
   const thead = el('thead'); const hr = el('tr');
-  [['Mieszkanie'], ['Cena wywołania', 'cena_wywolania', 'num'], ['Maks. cena', 'maks_cena', 'num'], ['Zapas', 'przebicie', 'num'], ['Zysk przy cenie wywołania', 'zysk', 'num lk-hide-narrow']].forEach(([n, t, c]) => { const th = el('th', c || null); if (t) th.appendChild(term(t, n)); else th.textContent = n; hr.appendChild(th); });
+  [['Mieszkanie'], ['Cena wywołania', 'cena_wywolania', 'num'], ['Maks. cena', 'maks_cena', 'num'], ['Zapas', 'przebicie', 'num'], ['Szac. zysk', 'zysk', 'num lk-hide-narrow']].forEach(([n, t, c]) => { const th = el('th', c || null); if (t) th.appendChild(term(t, n)); else th.textContent = n; hr.appendChild(th); });
   thead.appendChild(hr); tbl.appendChild(thead);
   const tb = el('tbody');
   data.forEach((d) => {
@@ -865,13 +913,10 @@ function drawWaterfall(D) {
   const box = q('.lk-wf'), sum = q('.lk-wf-sum');
   box.replaceChildren(); sum.replaceChildren();
   const d = (window.lkFlipData || []).find((x) => x.r.id === window.lkWf);
-  const rf = q('.a-rflat'), rn = q('.lk-rflat-note');
-  if (!d) { rf.value = ''; rn.textContent = ''; box.appendChild(el('div', 'lk-empty', 'Brak oferty do rozliczenia.')); return; }
+  const rn = q('.lk-wf-note');
+  if (!d) { rn.textContent = ''; box.appendChild(el('div', 'lk-empty', 'Brak oferty do rozliczenia.')); return; }
   q('.a-oferta').value = d.r.id;
-  if (rf !== document.activeElement) rf.value = d.wlasny ? Math.round(d.remontCaly) : '';
-  rf.placeholder = num(Math.round(d.remontCaly)) + ' (z ustawień)';
-  q('.a-rflat-clear').hidden = !d.wlasny;
-  rn.textContent = (d.wlasny ? 'Własna kwota remontu dla tego mieszkania. ' : 'Wpisz kwotę, żeby zastąpić ustawienie ogólne tylko dla tego mieszkania. ') + (d.r.udzial ? 'To udział ' + d.r.udzial + ', więc do rozliczenia wchodzi ' + zl(d.remont) + '.' : '');
+  rn.textContent = (d.wlasny ? 'To mieszkanie liczone jest Twoim wariantem zapisanym w kalkulatorze. ' : 'Liczone wariantem „' + A.wariant.value + '”. ') + opisRynku(d.r).replace(/^c/, 'C') + '.';
   const steps = [{ name: 'Ze sprzedaży', v: d.sprzedaz, type: 'total' }].concat(SEG.map((s, i) => ({ name: s.name, v: -d[s.key], type: 'cost', i }))).concat([{ name: d.zysk >= 0 ? 'Zysk' : 'Strata', v: d.zysk, type: 'end' }]);
   let run = 0;
   steps.forEach((s) => { if (s.type === 'total') { s.y0 = 0; s.y1 = s.v; run = s.v; } else if (s.type === 'cost') { s.y0 = run; s.y1 = run + s.v; run = s.y1; } else { s.y0 = 0; s.y1 = s.v; } });
@@ -894,23 +939,17 @@ function drawWaterfall(D) {
     .each(function (s) { const w = s.name.split(' '); const t = d3.select(this); (bw < 70 && w.length > 1 ? [w[0], w.slice(1).join(' ')] : [s.name]).forEach((ln, i) => t.append('tspan').attr('x', x(s.name) + bw / 2).attr('dy', i ? '1.2em' : 0).text(ln)); });
   const p = (t, k, v) => { const x = el('div'); const a = el('span', 'k'); a.appendChild(term(t, k)); x.append(a, el('span', 'v', v)); sum.appendChild(x); };
   p('wklad', 'Potrzebna gotówka', zl(d.wklad));
-  p('cena_ofertowa', 'Sprzedaż po', num(Math.round(d.rynekM2 * (1 - av(A.rabat) / 100))) + ' zł/m²');
-  p('pcc', 'PCC + wpis' + (d.eksm ? ' + opróżnienie' : ''), zl(d.oplaty));
-  p('prowizja', 'Prowizja z VAT + świadectwo', zl(d.sprzedaz_koszty));
+  p('cena_ofertowa', 'Sprzedaż po', num(Math.round(d.sprzedazM2)) + ' zł/m²');
+  p('remont', 'Remont z rezerwą', zl(d.remont));
+  p('pcc', isKom(d.r) ? 'Opłaty sądowe (KW)' : 'Notariusz, PCC, opłaty sądowe', zl(d.oplaty));
+  p('prowizja', 'Prowizja i inne koszty sprzedaży', zl(d.sprzedaz_koszty));
   p('pit', 'PIT', zl(d.pit));
   p('zysk', d.zysk >= 0 ? 'Zysk na czysto' : 'Strata', zl(Math.abs(d.zysk)) + ' (' + pct(d.roi * 100) + ')');
   const mx = maksCena(d.r, D.st);
   p('maks_cena', 'Maks. cena (cel ' + av(A.cel) + '%)', mx ? zl(mx) : 'nie opłaca się');
 }
 q('.a-oferta').addEventListener('change', () => { window.lkWf = q('.a-oferta').value; window.lkDraw(); });
-q('.a-rflat').addEventListener('input', () => {
-  const x = q('.a-rflat'), id = window.lkWf;
-  if (!id) return;
-  if (x.value === '' || isNaN(Number(x.value))) delete window.lkRF[id]; else window.lkRF[id] = Math.max(0, Number(x.value));
-  window.lkDraw();
-});
-q('.a-rflat').addEventListener('blur', () => window.lkDraw());
-q('.a-rflat-clear').addEventListener('click', () => { delete window.lkRF[window.lkWf]; q('.a-rflat').value = ''; window.lkDraw(); });
+q('.a-otworz').addEventListener('click', () => { const d = (window.lkFlipData || []).find((x) => x.r.id === window.lkWf); if (d) otworzKalkulator(d.r); });
 
 // ===== PORADNIK =====
 const gl = q('.lk-gloss'), glq = q('.lk-gloss-q');
@@ -929,9 +968,8 @@ cl.forEach((c) => c.addEventListener('change', () => { const n = cl.filter((x) =
 
 // ===== Główne rysowanie =====
 window.lkDraw = () => {
-  q('.a-remont-val').textContent = num(av(A.remont));
-  q('.a-rm2-wrap').hidden = A.rmode.value !== 'm2';
-  q('.a-rkw-wrap').hidden = A.rmode.value !== 'kwota';
+  const w = KM && KM.CONFIG.warianty[A.wariant.value];
+  if (w) q('.lk-wariant-opis').textContent = 'Wariant „' + w.etykieta.toLowerCase() + '”: kupujesz ' + (w.cenaZakupuMnoznik > 1 ? 'o ' + num((w.cenaZakupuMnoznik - 1) * 100, 1) + '% drożej niż cena wywołania' : 'po cenie wywołania') + ', remont ok. ' + num(Math.round((w.robociznaM2 + w.materialyM2) * (1 + w.rezerwaProc) / 100) * 100) + ' zł/m² (z rezerwą), ' + w.miesiace + ' mies. do sprzedaży, sprzedaż po ' + Math.round(w.sprzedazMnoznik * 100) + '% ceny rynkowej, prowizja ' + num(w.prowizjaProc * 100, 1) + '%. PIT 19% liczony jak przy sprzedaży przed upływem 5 lat.';
 
   if (DATA.status === 'ok') {
     const v = Object.fromEntries(DATA.podsumowanie.map((x) => [x.metryka, x.wartosc]));
@@ -956,7 +994,7 @@ window.lkDraw = () => {
   fr.appendChild(a);
   fr.appendChild(el('span', null, old ? 'Dane mogą być nieaktualne – automat nie odświeżył ich od kilku dni.' : 'Automat sprawdza nowe i zakończone licytacje codziennie ok. 6:52.'));
   const nowe = D.rows.filter(isNew).length;
-  if (nowe) fr.appendChild(el('span', null, nowe + ' nowych w ostatnich dniach'));
+  if (nowe) fr.appendChild(el('span', null, 'Nowe w ostatnich dniach: ' + nowe));
 
   const rows = filtered(D.rows);
   const tab = window.lkTab;

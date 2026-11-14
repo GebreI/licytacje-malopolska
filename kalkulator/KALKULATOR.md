@@ -1,6 +1,6 @@
-# Kalkulator inwestycji w mieszkanie: instrukcja wdrożenia
+# Kalkulator inwestycji w mieszkanie
 
-Ten moduł dodaje do dashboardu `licytacje-malopolska` kalkulator dla każdej oferty. Liczy flipa (kup, wyremontuj, sprzedaj), najem i wzrost wartości mieszkania w czasie. Pokazuje trzy warianty (pesymistyczny, bazowy, optymistyczny) i edytowalny „Twój wariant”.
+Moduł liczy każdą ofertę na stronie `licytacje-malopolska`. Liczy flipa (kup, wyremontuj, sprzedaj), najem i wzrost wartości mieszkania w czasie. Pokazuje trzy warianty (pesymistyczny, bazowy, optymistyczny) i edytowalny „Twój wariant”.
 
 Formuły pochodzą 1:1 z arkusza „Kalkulator inwestycji – Oświęcim, Nojego 10/45”, który został przygotowany w Claude.
 
@@ -10,50 +10,23 @@ Formuły pochodzą 1:1 z arkusza „Kalkulator inwestycji – Oświęcim, Nojego
 |---|---|
 | `kalkulator.js` | Logika i okno kalkulatora. Bez zależności, wystawia `window.KalkulatorMieszkania` |
 | `kalkulator.css` | Style okna (prefiks `.kalk`), jasny i ciemny motyw |
-| `demo.html` | Strona testowa z dwiema przykładowymi ofertami. Otwórz lokalnie w przeglądarce |
 | `KALKULATOR.md` | Ta instrukcja |
 
-## Zadanie dla Claude Code
+## Jak jest podłączony do strony
 
-1. Skopiuj `kalkulator.js` i `kalkulator.css` do repo, np. do `assets/kalkulator/` albo tam, gdzie leżą inne skrypty strony.
-2. Dołącz oba pliki na stronie dashboardu:
-   ```html
-   <link rel="stylesheet" href="assets/kalkulator/kalkulator.css">
-   <script src="assets/kalkulator/kalkulator.js"></script>
-   ```
-3. Przy każdej ofercie (wierszu tabeli albo karcie) dodaj przycisk „Kalkulator”. Wartości weź z danych oferty, z pliku JSON/CSV, który generuje codzienne zadanie:
-   ```html
-   <button class="kalk-przycisk"
-     data-kalk-id="{unikalne id oferty}"
-     data-kalk-tytul="{miasto, ulica – metraż}"
-     data-kalk-link="{link do ogłoszenia}"
-     data-kalk-cena="{cena wywoławcza w zł, liczba}"
-     data-kalk-metraz="{powierzchnia w m², liczba z kropką}"
-     data-kalk-cena-rynkowa-m2="{opcjonalnie: cena rynkowa/m² po remoncie}"
-     data-kalk-czynsz-najmu-m2="{opcjonalnie: czynsz najmu zł/m²}">Kalkulator</button>
-   ```
-   Jeśli tabela jest renderowana w JS, zamiast atrybutów możesz wywołać bezpośrednio:
-   ```js
-   KalkulatorMieszkania.open({ id, tytul, link, cena, metraz, cenaRynkowaM2, czynszNajmuM2 });
-   ```
-4. Raz po załadowaniu strony wywołaj `KalkulatorMieszkania.attachButtons();`. Kliknięcia są delegowane, więc działa to też dla wierszy dodanych później.
-5. Opcjonalnie dodaj sortowalną kolumnę „Zysk (bazowy)” liczoną bez otwierania okna:
-   ```js
-   const p = KalkulatorMieszkania.preset('bazowy', { cena, metraz, cenaRynkowaM2 });
-   const r = KalkulatorMieszkania.compute(p);
-   r.zyskNetto;        // zysk na czysto z flipa
-   r.rentownoscNajmu;  // rentowność najmu netto / rok
-   ```
-6. Nie zmieniaj formuł w `compute()`. Założenia (stawki remontu za m², mnożniki cen, prowizje) zmienia się w obiekcie `CONFIG` na początku `kalkulator.js`.
-7. Jeśli oferta nie ma ceny albo metrażu, nie pokazuj przycisku (`open()` bez ceny rzuca błąd).
+- To jedyny kalkulator na stronie. `app.js` (`flip`, `maksCena`) liczy ocenę, szacowany zysk, maksymalną cenę i wykresy zakładki „Kalkulator” wzorem `KalkulatorMieszkania.compute(KalkulatorMieszkania.preset(wariant, oferta))`.
+- W zakładce „Kalkulator” wybiera się wariant (pesymistyczny/bazowy/optymistyczny), źródło ceny rynkowej i docelowy zwrot.
+- Okno otwiera przycisk „Kalkulator tego mieszkania” w karcie oferty i „Zmień założenia tego mieszkania” w zakładce. Gdy dla mieszkania zapisano „Twój wariant”, cała strona liczy je tym wariantem (✎).
+- Bez ceny lub metrażu oferty kalkulatora nie pokazujemy (`open()` bez ceny rzuca błąd).
+- Nie zmieniaj formuł w `compute()`. Założenia (stawki remontu za m², mnożniki cen, prowizje) zmienia się w obiekcie `CONFIG` na początku `kalkulator.js`. Po zmianie podbij `?v=` w `index.html`.
 
 ### Cena rynkowa za m²
 
-Bez `cenaRynkowaM2` kalkulator przyjmuje 6 500 zł/m² (Oświęcim). Dla innych miast wynik będzie wtedy zły. Najlepiej, żeby codzienne zadanie zapisywało przy ofercie średnią cenę ofertową za m² z danego miasta albo dzielnicy. Wariant pesymistyczny liczy sprzedaż po 80% tej ceny, bazowy po 88%, optymistyczny po 95%. To dyskonto za stan i niepewność.
+Strona podaje cenę rynkową z danych (domyślnie mediana podobnych ogłoszeń, a gdy brak – cena ofertowa w gminie). Oferta bez żadnej ceny rynkowej nie dostaje szacunku zysku; samo okno przyjmuje wtedy 6 500 zł/m² (Oświęcim) i trzeba wpisać własną cenę. Wariant pesymistyczny liczy sprzedaż po 80% tej ceny, bazowy po 88%, optymistyczny po 95%. To dyskonto za stan i niepewność.
 
 ## Co zapamiętuje
 
-Zmiany w „Twoim wariancie” zapisują się w `localStorage` przeglądarki pod kluczem `kalkulator-mieszkania:{id}`. Są widoczne tylko w tej przeglądarce. Przycisk „Wyczyść zapisane” przywraca wariant bazowy. Dlatego `data-kalk-id` musi być stałe dla oferty, np. numer z serwisu.
+Zmiany w „Twoim wariancie” zapisują się w `localStorage` przeglądarki pod kluczem `kalkulator-mieszkania:{id}`. Są widoczne tylko w tej przeglądarce. Przycisk „Wyczyść zapisane” przywraca wariant bazowy. Klucz to `id` oferty z `data/licytacje.json`, więc musi być stałe.
 
 ## Formuły
 

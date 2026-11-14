@@ -1,11 +1,18 @@
 # Mieszkania do 200 tys. zł – Małopolska
 
-Strona z mieszkaniami do 200 000 zł w województwie małopolskim – licytacje komornicze, sprzedaż od syndyka, przetargi, oferty banków i zwykłe ogłoszenia:
-porównanie z rynkiem (ceny ofertowe, transakcyjne GUS, aktualne ogłoszenia, historia 10 lat),
-kalkulator kosztów remontu i odsprzedaży oraz poradnik dla początkujących.
+Strona z mieszkaniami do 200 000 zł w województwie małopolskim – licytacje komornicze, sprzedaż od syndyka, przetargi, oferty banków i zwykłe ogłoszenia.
+Każda oferta ma ocenę, szacowany zysk z kupna, remontu i sprzedaży, maksymalną cenę do zapłaty, porównanie z rynkiem i listę kroków dla początkujących.
 
-- `index.html` – strona
-- `app.js`, `slownik.js`, `dash-shim.js` – logika, słownik pojęć, ładowanie danych
-- `data/*.json` – dane, aktualizowane automatycznie
+Strona: https://gebrei.github.io/licytacje-malopolska/
+
+## Pliki
+- `index.html` – układ strony i style (zakładki: Start, Oferty, Na tle rynku, Kalkulator, Poradnik)
+- `app.js` – wczytanie danych, oceny ofert, karta oferty, wykresy
+- `kalkulator/` – kalkulator inwestycji (flip, najem, wzrost wartości); jego wzorami liczone są wszystkie zyski na stronie
+- `slownik.js` – wyjaśnienia podkreślonych pojęć
+- `data/*.json` – dane, aktualizowane automatycznie codziennie rano (instrukcja automatu: `AUTOMAT.md`)
+- `CLAUDE.md` – opis projektu i zasady dla Claude Code
+
+Podgląd lokalny: `python3 -m http.server 8000` w folderze repo, potem http://localhost:8000.
 
 Narzędzie do wstępnej selekcji – nie jest poradą prawną, podatkową ani inwestycyjną.

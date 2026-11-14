@@ -52,6 +52,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 .lk .lead { color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); max-width: 60rem; }
 .lk .note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: var(--cds-gap-xs) 0 var(--cds-gap-md); max-width: 60rem; }
 .lk-fresh { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-sm); }
+.lk-fresh-txt { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs) var(--cds-gap-md); }
 .lk-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--color-ok); margin-right: 6px; }
 .lk-dot.old { background: var(--color-warn); }
 
@@ -208,6 +209,61 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 .lk-rel { display: inline-block; font-size: var(--cds-font-size-caption); border-radius: 999px; padding: 0 var(--cds-pad-sm); border: 1px solid currentColor; white-space: nowrap; }
 .lk-rel.hi { color: var(--color-ok); } .lk-rel.mid { color: var(--color-warn); } .lk-rel.lo { color: var(--color-bad); }
 .lk-hist { position: relative; min-height: 18rem; }
+/* Karta oferty: najważniejsze na górze, reszta w rozwijanych sekcjach */
+.lk-keyfacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); gap: var(--cds-gap-sm); margin-top: var(--cds-gap-md); }
+.lk-keyfact { background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-md); }
+.lk-keyfact .k { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-keyfact .v { font-family: var(--font-anthropic-serif); font-size: 21px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.lk-keyfact .s { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.lk-keyfact.good .v { color: var(--color-ok); }
+.lk-keyfact.bad .v { color: var(--color-bad); }
+.lk-keyfact.warn .v, .lk-keyfact.warn .s { color: var(--color-warn); }
+.lk-actions { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); margin-top: var(--cds-gap-md); }
+.lk-actions .lk-btn { text-decoration: none; padding: var(--cds-pad-sm) var(--cds-pad-md); }
+.lk-btn.primary { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.lk-btn:hover { border-color: var(--color-fg-muted); }
+.lk-detail-main h3 { margin-top: var(--cds-gap-lg); }
+.lk-more { border-top: 1px solid var(--color-border-line); margin-top: var(--cds-gap-md); padding-top: var(--cds-gap-sm); }
+.lk-more > summary { cursor: pointer; font-weight: var(--cds-font-weight-medium); padding: var(--cds-pad-xs) 0; }
+.lk-more[open] > summary { margin-bottom: var(--cds-gap-sm); }
+.lk-more .lk-facts { margin-top: var(--cds-gap-sm); }
+.lk-opis { font-size: var(--cds-font-size-body); max-width: 60rem; }
+.lk-detail > .lk-back:last-child { margin-top: var(--cds-gap-md); }
+/* Filtry jako rozwijana karta (na telefonie domyślnie zwinięte) */
+.lk-filtry > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: var(--cds-gap-sm); }
+.lk-filtry > summary::-webkit-details-marker { display: none; }
+.lk-filtry > summary h2 { display: inline; }
+.lk-filtry > summary::after { content: "▾"; color: var(--color-fg-muted); margin-left: auto; }
+.lk-filtry:not([open]) > summary::after { content: "▸"; }
+.lk-filtry .lk-filtry-ile { margin: 0; }
+.lk-sort-mob { display: none; }
+
+/* Telefon: oferty jako kafelki zamiast szerokiej tabeli */
+@media (max-width: 640px) {
+  #dash-root { padding: 16px 12px 40px; }
+  .lk h1 { font-size: 22px; }
+  .lk-card { padding: var(--cds-pad-md); }
+  .lk-tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .lk-tabs button { white-space: nowrap; padding: var(--cds-pad-sm); }
+  .lk-filters label, .lk-in, .lk-filters input, .lk-filters select { width: 100%; }
+  .lk-filters > label { flex: 1 1 100%; }
+  .lk-filters .pair input { width: 50%; }
+  #lista-ofert .lk-tablewrap { max-height: none; overflow: visible; }
+  .lk-offers thead { display: none; }
+  .lk-sort-mob { display: flex; align-items: center; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-bottom: var(--cds-gap-sm); }
+  .lk-sort-mob select { width: auto; flex: 1; }
+  .lk-offers, .lk-offers tbody { display: block; }
+  .lk-offers tbody tr { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px var(--cds-gap-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); padding: var(--cds-pad-sm) var(--cds-pad-md); margin-bottom: var(--cds-gap-sm); }
+  .lk-offers tbody tr.sel { border-color: var(--color-fg); }
+  .lk-offers tbody tr.sel td { box-shadow: none; }
+  .lk-offers td { display: block; border: 0; padding: 2px 0; text-align: left !important; }
+  .lk-offers td:first-child { grid-column: 1 / -1; }
+  .lk-offers td[data-l]::before { content: attr(data-l); display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .lk-offers td.lk-hide-narrow { display: none; }
+  .lk-date { grid-template-columns: 4.5rem 1fr; }
+  .lk-date .w { grid-column: 2; }
+  .lk-actions .lk-btn { flex: 1 1 auto; text-align: center; }
+}
 [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
 [data-dash-source-state=empty] { color: transparent; }
 </style>
@@ -215,7 +271,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 <div class="lk" id="dashboard">
   <header id="naglowek">
     <h1>Licytacje i okazje: mieszkania do 200 tys. zł – Małopolska</h1>
-    <p class="lead">Mieszkania w województwie małopolskim do 200 000 zł: z <span class="t" data-t="licytacja">licytacji komorniczych</span>, od syndyków, z przetargów gmin, spółdzielni i instytucji, od banków oraz ze zwykłych ogłoszeń sprzedaży – z porównaniem do rynku, kalkulatorem kosztów remontu i odsprzedaży oraz poradnikiem dla początkujących. Podkreślone słowa wyjaśniają się po najechaniu lub dotknięciu.</p>
+    <p class="lead">Tanie mieszkania z <span class="t" data-t="licytacja">licytacji komorniczych</span>, przetargów i ogłoszeń – z oceną, czy opłaca się je kupić, wyremontować i sprzedać. Podkreślone słowa wyjaśniają się po najechaniu lub dotknięciu.</p>
     <p class="lk-fresh" data-source="licytacje"><span class="lk-fresh-txt">—</span></p>
   </header>
 
@@ -223,7 +279,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
     <button role="tab" data-tab="start" aria-selected="true">Start</button>
     <button role="tab" data-tab="oferty" aria-selected="false">Oferty</button>
     <button role="tab" data-tab="rynek" aria-selected="false">Na tle rynku</button>
-    <button role="tab" data-tab="kalkulator" aria-selected="false">Kalkulator zysku</button>
+    <button role="tab" data-tab="kalkulator" aria-selected="false">Kalkulator</button>
     <button role="tab" data-tab="poradnik" aria-selected="false">Poradnik</button>
   </nav>
 
@@ -233,7 +289,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
       <h2>Jak korzystać – trzy kroki</h2>
       <div class="lk-steps3" style="margin-top: var(--cds-gap-md)">
         <div class="lk-step3"><div class="n">Wybierz ofertę</div><p>W zakładce „Oferty” każde mieszkanie ma <span class="t" data-t="ocena">ocenę</span> i kartę z ryzykami. Zacznij od zielonych.</p><button class="lk-link" data-go="oferty">Przejdź do ofert →</button></div>
-        <div class="lk-step3"><div class="n">Policz, czy się opłaca</div><p>„Kalkulator zysku” pokaże wszystkie koszty i <span class="t" data-t="maks_cena">maksymalną cenę</span>, jaką warto zaoferować.</p><button class="lk-link" data-go="kalkulator">Otwórz kalkulator →</button></div>
+        <div class="lk-step3"><div class="n">Policz, czy się opłaca</div><p>„Kalkulator” pokaże wszystkie koszty i <span class="t" data-t="maks_cena">maksymalną cenę</span>, jaką warto zaoferować.</p><button class="lk-link" data-go="kalkulator">Otwórz kalkulator →</button></div>
         <div class="lk-step3"><div class="n">Przygotuj się do licytacji</div><p>„Poradnik” prowadzi krok po kroku od <span class="t" data-t="obwieszczenie">obwieszczenia</span> do sprzedaży, z listą rzeczy do sprawdzenia przed wpłatą <span class="t" data-t="rekojmia">rękojmi</span>.</p><button class="lk-link" data-go="poradnik">Czytaj poradnik →</button></div>
       </div>
     </div>
@@ -274,8 +330,8 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 
   <!-- OFERTY -->
   <section class="lk-page" id="oferty" hidden>
-    <div class="lk-card" id="filtry">
-      <h2>Filtry</h2>
+    <details class="lk-card lk-filtry" id="filtry" open>
+      <summary><h2>Filtry</h2> <span class="note lk-filtry-ile"></span></summary>
       <p class="note">Zawężają tabelę, wykres rynku i kalkulator.</p>
       <div class="lk-filters">
         <label><span class="t" data-t="ocena">Ocena</span>
@@ -304,11 +360,12 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
         </label>
         <button class="lk-btn f-reset" type="button">Wyczyść</button>
       </div>
-    </div>
+    </details>
 
     <div class="lk-card lk-tablecard" id="lista-ofert">
       <h2>Oferty</h2>
       <p class="note lk-count" data-source="licytacje">—</p>
+      <label class="lk-sort-mob">Sortuj: <select class="lk-in f-sort"><option value="ocena">Najlepsze na górze</option><option value="zysk">Najwyższy zysk</option><option value="cena">Najtańsze</option><option value="termin">Najbliższy termin</option><option value="vs_ogloszenia_pct">Najtaniej vs ogłoszenia</option></select></label>
       <div class="lk-tablewrap">
         <table class="lk-table lk-offers" data-source="licytacje" data-row-key="id">
           <thead><tr>
@@ -319,12 +376,12 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
             <th data-source="porownanie" data-field="vs_ofertowa_pct" class="num"><button data-sort="vs_ofertowa_pct"><span class="t" data-t="vs_ofertowe">vs gmina</span></button></th>
             <th data-source="podobne" data-field="vs_ogloszenia_pct" class="num"><button data-sort="vs_ogloszenia_pct"><span class="t" data-t="vs_ogloszenia">vs ogłoszenia</span></button></th>
             <th data-field="termin"><button data-sort="termin"><span class="t" data-t="termin">Licytacja</span></button></th>
-            <th data-field="typ" class="lk-hide-narrow"><button data-sort="typ">Typ</button></th>
+            <th data-field="zysk" class="num"><button data-sort="zysk"><span class="t" data-t="zysk">Szac. zysk</span></button></th>
           </tr></thead>
           <tbody></tbody>
         </table>
       </div>
-      <p class="note" style="margin-top: var(--cds-gap-sm)">Kliknij wiersz, żeby zobaczyć kartę oferty poniżej.</p>
+      <p class="note" style="margin-top: var(--cds-gap-sm)">Kliknij ofertę, żeby zobaczyć jej kartę poniżej.</p>
     </div>
 
     <div class="lk-card" id="karta-oferty">
@@ -336,7 +393,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
   <section class="lk-page" id="rynek" hidden>
     <div class="lk-card" id="wykres-rynek">
       <h2>Cena za m² na tle rynku</h2>
-      <p class="note">Słupek: <span class="t" data-t="zl_m2_calosc">cena wywołania za m² za całość</span>. Kreski: <span class="t" data-t="cena_ofertowa">cena ofertowa</span> w gminie, <span class="t" data-t="cena_transakcyjna">cena transakcyjna</span> w powiecie i <span class="t" data-t="podobne">mediana podobnych ogłoszeń</span>. Liczba po prawej to <span class="t" data-t="vs_ofertowe">różnica do cen ofertowych</span>. Im dłuższy odstęp między słupkiem a kreskami, tym większa zniżka.</p>
+      <p class="note">Słupek: <span class="t" data-t="zl_m2_calosc">cena wywołania za m²</span>. Kreski: <span class="t" data-t="cena_ofertowa">cena ofertowa</span> w gminie, <span class="t" data-t="cena_transakcyjna">cena transakcyjna</span> w powiecie i <span class="t" data-t="podobne">mediana podobnych ogłoszeń</span>. Liczba po prawej to <span class="t" data-t="vs_ofertowe">różnica do cen ofertowych</span>. Im dłuższy odstęp między słupkiem a kreskami, tym większa zniżka.</p>
       <div class="lk-legend lk-mkt-legend"></div>
       <div class="lk-chart" data-source="licytacje porownanie ceny_rynkowe"></div>
     </div>
@@ -409,38 +466,19 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
   <section class="lk-page" id="kalkulator" hidden>
     <div class="lk-card" id="zalozenia">
       <h2>Twoje założenia</h2>
-      <p class="note">Zakup za gotówkę, remont, czekanie na sprzedaż i sprzedaż po cenie rynkowej. Wszystkie wykresy i oceny na dashboardzie liczą się od tych ustawień. Kwoty nie zapisują się po zamknięciu.</p>
-      <div class="lk-group"><div class="gt">Zakup</div>
-        <div class="lk-filters">
-          <label><span class="t" data-t="przebicie">Przebicie ceny wywołania</span> (%)<input class="a-przeb" type="number" min="0" max="100" step="1" value="0"></label>
-          <label class="lk-check"><span><input class="a-pcc" type="checkbox" checked> <span class="t" data-t="pcc">PCC 2%</span></span></label>
-          <label class="lk-check"><span><input class="a-eksm" type="checkbox"> <span class="t" data-t="oproznienie">Opróżnienie lokalu przez komornika</span></span></label>
-        </div>
+      <p class="note">Kupujesz za gotówkę, remontujesz i sprzedajesz. Wybierz, jak ostrożnie liczyć – od tego zależą oceny, szacowany zysk i maksymalna cena w całej stronie. Szczegóły (remont, czynsz, prowizja, najem) zmienisz dla każdego mieszkania w jego kalkulatorze – przycisk niżej i w karcie oferty.</p>
+      <div class="lk-filters">
+        <label><span class="t" data-t="wariant">Wariant</span><select class="a-wariant" style="width:auto"><option value="pesymistyczny">Pesymistyczny (ostrożnie)</option><option value="bazowy" selected>Bazowy</option><option value="optymistyczny">Optymistyczny</option></select></label>
+        <label><span class="t" data-t="cena_ofertowa">Cena rynkowa z</span><select class="a-cena" style="width:auto"><option value="ogloszenia" selected>Podobnych ogłoszeń (a gdy brak – gminy)</option><option value="ofertowa">Cen ofertowych w gminie</option><option value="transakcyjna">Transakcji w powiecie (GUS)</option></select></label>
+        <label><span class="t" data-t="cel_roi">Docelowy zwrot</span> (%)<input class="a-cel" type="number" min="0" max="100" step="1" value="15" inputmode="numeric"></label>
+        <button class="lk-btn a-reset" type="button">Przywróć domyślne</button>
       </div>
-      <div class="lk-group"><div class="gt"><span class="t" data-t="remont">Remont</span> i czekanie</div>
-        <div class="lk-filters">
-          <label>Remont liczony<select class="a-rmode"><option value="m2">Za m²</option><option value="kwota">Kwotą na mieszkanie</option></select></label>
-          <label class="a-rm2-wrap">Remont: <b class="a-remont-val">—</b> zł/m²<input class="a-remont" type="range" min="0" max="3500" step="100" value="1500"></label>
-          <label class="a-rkw-wrap" hidden>Remont na mieszkanie (zł)<input class="a-rkwota" type="number" min="0" step="1000" value="40000" inputmode="numeric"></label>
-          <label><span class="t" data-t="czas">Czas do sprzedaży</span> (mies.)<input class="a-mies" type="number" min="0" max="60" step="1" value="6"></label>
-          <label><span class="t" data-t="utrzymanie">Utrzymanie</span> (zł/m²/mies.)<input class="a-utrz" type="number" min="0" max="50" step="1" value="10"></label>
-        </div>
-      </div>
-      <div class="lk-group"><div class="gt">Sprzedaż</div>
-        <div class="lk-filters">
-          <label>Cena sprzedaży<select class="a-cena"><option value="ofertowa">Ofertowa (gmina)</option><option value="transakcyjna">Transakcyjna (powiat, GUS)</option><option value="ogloszenia">Podobne ogłoszenia (mediana)</option></select></label>
-          <label><span class="t" data-t="upust">Upust przy sprzedaży</span> (%)<input class="a-rabat" type="number" min="0" max="50" step="1" value="5"></label>
-          <label><span class="t" data-t="prowizja">Prowizja pośrednika</span> (% netto)<input class="a-prow" type="number" min="0" max="10" step="0.5" value="2.5"></label>
-          <label><span class="t" data-t="piec_lat">Kiedy sprzedajesz</span><select class="a-pit"><option value="1">Przed upływem 5 lat (PIT 19%)</option><option value="0">Po 5 latach (bez PIT)</option></select></label>
-          <label><span class="t" data-t="cel_roi">Docelowy zwrot</span> (%)<input class="a-cel" type="number" min="0" max="100" step="1" value="15"></label>
-          <button class="lk-btn a-reset" type="button">Przywróć domyślne</button>
-        </div>
-      </div>
+      <p class="note lk-wariant-opis" style="margin-top: var(--cds-gap-md)"></p>
     </div>
 
     <div class="lk-card" id="koszty">
       <h2>Na co idą pieniądze w każdej ofercie</h2>
-      <p class="note">Słupek to kolejne koszty, a na końcu <span class="t" data-t="zysk">zysk</span>. Pionowa kreska: ile dostaniesz ze sprzedaży. Po prawej zysk i <span class="t" data-t="roi">zwrot</span>. Kliknij słupek, żeby rozliczyć ofertę niżej. ✎ = własna kwota remontu.</p>
+      <p class="note">Słupek to kolejne koszty, a na końcu <span class="t" data-t="zysk">zysk</span>. Pionowa kreska: ile dostaniesz ze sprzedaży. Po prawej zysk i <span class="t" data-t="roi">zwrot</span>. Kliknij słupek, żeby rozliczyć ofertę niżej. ✎ = mieszkanie liczone Twoim wariantem z kalkulatora.</p>
       <div class="lk-legend lk-flip-legend"></div>
       <div class="lk-flip" data-source="licytacje porownanie ceny_rynkowe koszty_stawki"></div>
     </div>
@@ -456,12 +494,12 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
       <p class="note">Od kwoty ze sprzedaży, przez wszystkie koszty, do zysku na czysto.</p>
       <div class="lk-filters" style="margin-bottom: var(--cds-gap-sm)">
         <label>Oferta<select class="a-oferta" style="width:auto;max-width:min(100%,26rem)"></select></label>
-        <label>Remont tego mieszkania (zł)<span class="pair"><input class="a-rflat" type="number" min="0" step="1000" inputmode="numeric" style="width:12rem"><button class="lk-btn a-rflat-clear" type="button" title="Wróć do ustawienia ogólnego">×</button></span></label>
+        <button class="lk-btn a-otworz" type="button">Zmień założenia tego mieszkania (remont, czynsz, najem) →</button>
       </div>
-      <p class="note lk-rflat-note"></p>
+      <p class="note lk-wf-note"></p>
       <div class="lk-wf" data-source="licytacje porownanie ceny_rynkowe koszty_stawki"></div>
       <div class="lk-sum lk-wf-sum"></div>
-      <p class="note" style="margin-top: var(--cds-gap-md)"><span class="t" data-t="pit">PIT</span> liczony jest od dochodu: cena sprzedaży minus prowizja i świadectwo, koszty zakupu i remont (zakładam faktury – <span class="t" data-t="naklady">udokumentowane nakłady</span>). Utrzymanie nie zmniejsza podatku. Przy <span class="t" data-t="udzial">udziale</span> wynik jest czysto teoretyczny – udziału zwykle nie sprzedasz po cenie rynkowej.</p>
+      <p class="note" style="margin-top: var(--cds-gap-md)"><span class="t" data-t="pit">PIT</span> liczony jest od dochodu: cena sprzedaży minus koszty sprzedaży, koszty zakupu i remont (zakładam faktury – <span class="t" data-t="naklady">udokumentowane nakłady</span>). Utrzymanie nie zmniejsza podatku.</p>
     </div>
   </section>
 
@@ -474,7 +512,7 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
         <li><div class="h">Znajdź ofertę i przeczytaj obwieszczenie</div><div class="meta">Najlepiej 3–4 tygodnie przed licytacją</div><p>W pełnym <span class="t" data-t="obwieszczenie">obwieszczeniu</span> jest numer <span class="t" data-t="kw">księgi wieczystej</span>, <span class="t" data-t="suma_oszacowania">suma oszacowania</span>, <span class="t" data-t="cena_wywolania">cena wywołania</span>, wysokość <span class="t" data-t="rekojmia">rękojmi</span>, terminy <span class="t" data-t="ogledziny">oględzin</span> i tryb licytacji. Linki w dashboardzie prowadzą do agregatorów – pełne obwieszczenie znajdziesz na licytacje.komornik.pl (od lutego 2026 jeden portal dla licytacji zwykłych i elektronicznych).</p></li>
         <li><div class="h">Sprawdź księgę wieczystą</div><div class="meta">Za darmo, 15 minut – ekw.ms.gov.pl</div><p>Kto jest właścicielem, czy są <span class="t" data-t="hipoteka">hipoteki</span> (dział IV) i obciążenia (dział III). <span class="t" data-t="hipoteka">Hipoteki</span> po licytacji wygasają, ale <span class="t" data-t="sluzebnosc">służebność mieszkania</span> wpisana wcześniej może zostać.</p><p class="warn">Uwaga na: służebności, dożywocie, wzmianki o sprawach sądowych, udziały kilku właścicieli.</p></li>
         <li><div class="h">Obejrzyj lokal i przeczytaj operat</div><div class="meta">W terminach oględzin z obwieszczenia</div><p>Jeśli się da – idź na <span class="t" data-t="ogledziny">oględziny</span>. W kancelarii komornika przejrzyj <span class="t" data-t="operat">operat szacunkowy</span> i protokół opisu. Zapytaj spółdzielnię lub wspólnotę o stan budynku, planowane remonty i kto mieszka w lokalu.</p></li>
-        <li><div class="h">Policz koszty i ustal maksymalną kwotę</div><div class="meta">Zakładka „Kalkulator zysku”</div><p>Ustaw realny remont i czas, sprawdź <span class="t" data-t="maks_cena">maksymalną cenę</span>. Dodaj 10–20% zapasu na niespodzianki. Na licytacji nie przekraczaj tej kwoty.</p></li>
+        <li><div class="h">Policz koszty i ustal maksymalną kwotę</div><div class="meta">Zakładka „Kalkulator” i kalkulator w karcie oferty</div><p>Wpisz realny remont i czas w kalkulatorze tego mieszkania, sprawdź <span class="t" data-t="maks_cena">maksymalną cenę</span>. Dodaj 10–20% zapasu na niespodzianki. Na licytacji nie przekraczaj tej kwoty.</p></li>
         <li><div class="h">Wpłać rękojmię</div><div class="meta">E-licytacja: najpóźniej 2 dni robocze przed startem · stacjonarna: termin w obwieszczeniu</div><p><span class="t" data-t="rekojmia">Rękojmia</span> to 1/10 sumy oszacowania. Przelew na konto wskazane w obwieszczeniu, w tytule sygnatura sprawy. Przy e-licytacji podajesz też PESEL, numer dowodu i stan cywilny. Jeśli przegrasz – rękojmia wraca.</p></li>
         <li><div class="h">Licytuj</div><div class="meta"><span class="t" data-t="stacjonarna">Stacjonarna</span>: jeden dzień w sądzie · <span class="t" data-t="elicytacja">e-licytacja</span>: 7 dni online</div><p>Każda kolejna oferta musi być wyższa co najmniej o <span class="t" data-t="postapienie">postąpienie</span> (1% ceny wywołania). W licytacji nie mogą brać udziału m.in. dłużnik i jego najbliższa rodzina.</p></li>
         <li><div class="h">Przybicie</div><div class="meta">Kilka tygodni na uprawomocnienie</div><p>Sąd udziela <span class="t" data-t="przybicie">przybicia</span> najwyższej ofercie. Od <span class="t" data-t="prawomocne">uprawomocnienia</span> biegnie termin na zapłatę.</p></li>
@@ -535,8 +573,8 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 </div>
 
 <script src="kalkulator/kalkulator.js?v=2026-11-14"></script>
-<script src="slownik.js?v=2026-11-04-2"></script>
-<script src="app.js?v=2026-11-14"></script>
+<script src="slownik.js?v=2026-11-14"></script>
+<script src="app.js?v=2026-11-14-4"></script>
 
 <p class="lk-footer">Dane zbierane automatycznie z publicznych źródeł (ListaPrzetargow.pl, Monitor Przetargów Adradar, RealAdvisor, GUS, Domiporta, Nieruchomości-online). Narzędzie do wstępnej selekcji ofert – nie jest poradą prawną, podatkową ani inwestycyjną. Przed wpłatą rękojmi zawsze sprawdź pełne obwieszczenie komornika i księgę wieczystą.</p>
 </div>
