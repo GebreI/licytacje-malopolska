@@ -1,0 +1,113 @@
+/* Kalkulator inwestycji w mieszkanie — style modułu (prefiks .kalk) */
+.kalk {
+  --kalk-bg: #ffffff;
+  --kalk-tekst: #1c1d21;
+  --kalk-szary: #6b6f78;
+  --kalk-linia: #e3e5ea;
+  --kalk-pole: #f6f7f9;
+  --kalk-akcent: #2f6fdb;
+  --kalk-twoj: #fff7d6;
+  --kalk-plus: #e6f4ea;
+  --kalk-minus: #c62828;
+  width: min(1180px, 96vw);
+  max-height: 92vh;
+  padding: 0;
+  border: 1px solid var(--kalk-linia);
+  border-radius: 14px;
+  background: var(--kalk-bg);
+  color: var(--kalk-tekst);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+  overflow: hidden;
+}
+@media (prefers-color-scheme: dark) {
+  .kalk {
+    --kalk-bg: #17181c;
+    --kalk-tekst: #e9eaee;
+    --kalk-szary: #9a9ea8;
+    --kalk-linia: #2c2e35;
+    --kalk-pole: #202228;
+    --kalk-akcent: #6ea0ff;
+    --kalk-twoj: #3a3418;
+    --kalk-plus: #183522;
+    --kalk-minus: #ff7a7a;
+  }
+}
+.kalk[open] { display: flex; flex-direction: column; }
+.kalk::backdrop { background: rgba(10, 12, 16, .55); }
+
+.kalk__naglowek {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+  padding: 16px 20px 10px; border-bottom: 1px solid var(--kalk-linia);
+}
+.kalk__tytul { margin: 0; font-size: 18px; font-weight: 650; }
+.kalk__podtytul { color: var(--kalk-szary); font-size: 13px; margin-top: 2px; }
+.kalk__podtytul a { color: var(--kalk-akcent); }
+.kalk__zamknij {
+  border: 0; background: none; color: var(--kalk-szary); font-size: 26px; line-height: 1;
+  cursor: pointer; padding: 0 4px;
+}
+.kalk__zamknij:hover { color: var(--kalk-tekst); }
+
+.kalk__presety {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 10px 20px; border-bottom: 1px solid var(--kalk-linia); font-size: 13px; color: var(--kalk-szary);
+}
+.kalk__presety button {
+  border: 1px solid var(--kalk-linia); background: var(--kalk-pole); color: var(--kalk-tekst);
+  border-radius: 999px; padding: 4px 12px; font: inherit; cursor: pointer;
+}
+.kalk__presety button:hover { border-color: var(--kalk-akcent); }
+.kalk__presety .kalk__reset { margin-left: auto; background: none; }
+
+.kalk__uklad {
+  display: grid; grid-template-columns: minmax(280px, 360px) 1fr; gap: 0;
+  overflow: hidden; flex: 1; min-height: 0;
+}
+@media (max-width: 860px) {
+  .kalk__uklad { grid-template-columns: 1fr; overflow-y: auto; }
+}
+.kalk__formularz {
+  overflow-y: auto; padding: 12px 20px 20px; border-right: 1px solid var(--kalk-linia);
+  background: var(--kalk-twoj);
+}
+.kalk__formularz fieldset { border: 0; margin: 0 0 14px; padding: 0; }
+.kalk__formularz legend { font-weight: 650; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+.kalk__pole { display: block; margin-bottom: 8px; }
+.kalk__pole span { display: block; font-size: 13px; }
+.kalk__pole input {
+  width: 100%; box-sizing: border-box; padding: 6px 8px; margin-top: 2px;
+  border: 1px solid var(--kalk-linia); border-radius: 8px; background: var(--kalk-bg); color: var(--kalk-tekst);
+  font: inherit; font-variant-numeric: tabular-nums;
+}
+.kalk__pole input:focus { outline: 2px solid var(--kalk-akcent); outline-offset: 0; border-color: transparent; }
+.kalk__pole small { display: block; color: var(--kalk-szary); font-size: 12px; margin-top: 2px; }
+
+.kalk__wyniki { overflow: auto; padding: 12px 20px 20px; }
+.kalk__tabela { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.kalk__tabela th, .kalk__tabela td { padding: 5px 8px; border-bottom: 1px solid var(--kalk-linia); text-align: right; white-space: nowrap; }
+.kalk__tabela th[scope="row"], .kalk__tabela thead th:first-child { text-align: left; font-weight: 500; white-space: normal; }
+.kalk__tabela thead th { font-size: 12px; color: var(--kalk-szary); font-weight: 600; position: sticky; top: 0; background: var(--kalk-bg); }
+.kalk__tabela .kalk__sekcja th {
+  text-align: left; padding-top: 14px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
+  color: var(--kalk-akcent); font-weight: 650;
+}
+.kalk__tabela .kalk__twoj { background: var(--kalk-twoj); }
+.kalk__tabela thead .kalk__twoj { color: var(--kalk-tekst); }
+.kalk__wyroznij th, .kalk__wyroznij td { font-weight: 700; background: var(--kalk-plus); }
+.kalk__wyroznij td.kalk__twoj { background: var(--kalk-twoj); }
+.kalk__minus { color: var(--kalk-minus); }
+
+.kalk__srednie { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 16px; }
+.kalk__srednie div { border: 1px solid var(--kalk-linia); border-radius: 10px; padding: 10px 12px; }
+.kalk__srednie span { display: block; color: var(--kalk-szary); font-size: 12px; }
+.kalk__srednie strong { font-size: 18px; font-variant-numeric: tabular-nums; }
+
+.kalk__stopka { margin: 0; padding: 8px 20px 12px; border-top: 1px solid var(--kalk-linia); color: var(--kalk-szary); font-size: 12px; }
+
+/* Przycisk przy ofercie w dashboardzie (opcjonalny) */
+.kalk-przycisk {
+  border: 1px solid #c9cdd6; background: transparent; color: inherit; border-radius: 8px;
+  padding: 3px 10px; font: inherit; font-size: 13px; cursor: pointer;
+}
+.kalk-przycisk:hover { border-color: #2f6fdb; }

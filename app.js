@@ -607,6 +607,18 @@ function drawDetail(D, r) {
   if (rodz(r) === 'syndyk') { link('https://krz.ms.gov.pl/', 'Rejestr Zadłużonych (KRZ) ↗'); link(google('syndyk sprzedaż mieszkanie ' + gdzie + ' obwieszczenie'), 'Szukaj ogłoszenia syndyka ↗'); }
   const calc = el('button', 'lk-link', 'Policz w kalkulatorze →'); calc.dataset.go = 'kalkulator'; calc.addEventListener('click', () => { window.lkWf = r.id; });
   links.appendChild(calc);
+  // Kalkulator inwestycji (moduł kalkulator/kalkulator.js): flip, najem i wzrost wartości w 3 wariantach + Twój.
+  if (window.KalkulatorMieszkania && r.cena && r.m2) {
+    const rynekM2 = r.og_mediana_m2 || r.rynek_ofertowa_m2 || null;
+    const zrodloRynku = r.og_mediana_m2 ? 'cena rynkowa: mediana ' + r.og_liczba + ' ogłosz. (' + num(r.og_mediana_m2) + ' zł/m²)' : r.rynek_ofertowa_m2 ? 'cena rynkowa: RealAdvisor, gmina (' + num(r.rynek_ofertowa_m2) + ' zł/m²)' : 'brak ceny rynkowej – przyjęto 6 500 zł/m² (Oświęcim)';
+    const kb = el('button', 'lk-link', 'Kalkulator inwestycji: flip, najem →');
+    kb.type = 'button';
+    kb.addEventListener('click', () => window.KalkulatorMieszkania.open({
+      id: r.id, tytul: label2(r) + ' – ' + num(r.m2, 2) + ' m²', link: r.url, cena: r.cena, metraz: r.m2,
+      cenaRynkowaM2: rynekM2, rodzaj: rodz(r), opis: zrodloRynku + (isKom(r) ? ' · licytacja: bez PCC i notariusza' : ''),
+    }));
+    links.appendChild(kb);
+  }
   links.appendChild(backBtn());
   box.appendChild(links);
 }

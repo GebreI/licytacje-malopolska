@@ -34,6 +34,11 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
 @keyframes sk { from { opacity: .45; } to { opacity: .9; } }
 .lk-footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--color-border-line); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 </style>
+<link rel="stylesheet" href="kalkulator/kalkulator.css?v=2026-11-14">
+<style>
+/* Kalkulator inwestycji w kolorach strony (nadpisuje zmienne modułu, jasny i ciemny motyw) */
+.kalk.kalk { --kalk-bg: var(--color-bg); --kalk-tekst: var(--color-fg); --kalk-szary: var(--color-fg-muted); --kalk-linia: var(--color-border-line); --kalk-pole: var(--color-panel); --kalk-akcent: var(--s0); --kalk-minus: var(--color-bad); font-family: var(--font-anthropic-sans); }
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 </head>
 <body>
@@ -529,8 +534,9 @@ html, body { margin: 0; background: var(--color-bg); color: var(--color-fg); fon
   <div class="lk-tipg" role="tooltip" hidden></div>
 </div>
 
+<script src="kalkulator/kalkulator.js?v=2026-11-14"></script>
 <script src="slownik.js?v=2026-11-04-2"></script>
-<script src="app.js?v=2026-11-04-6"></script>
+<script src="app.js?v=2026-11-14"></script>
 
 <p class="lk-footer">Dane zbierane automatycznie z publicznych źródeł (ListaPrzetargow.pl, Monitor Przetargów Adradar, RealAdvisor, GUS, Domiporta, Nieruchomości-online). Narzędzie do wstępnej selekcji ofert – nie jest poradą prawną, podatkową ani inwestycyjną. Przed wpłatą rękojmi zawsze sprawdź pełne obwieszczenie komornika i księgę wieczystą.</p>
 </div>
