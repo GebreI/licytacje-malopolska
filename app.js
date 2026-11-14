@@ -167,54 +167,65 @@ Object.values(F).forEach((x) => { x.addEventListener('input', () => window.lkDra
 q('.f-reset').addEventListener('click', () => { Object.values(F).forEach((x) => { x.value = ''; }); F.cena.value = 200000; window.lkDraw(); });
 
 // ===== Założenia kalkulatora =====
-const A = {
-  przeb: q('.a-przeb'), pcc: q('.a-pcc'), eksm: q('.a-eksm'), rmode: q('.a-rmode'), remont: q('.a-remont'), rkwota: q('.a-rkwota'),
-  mies: q('.a-mies'), utrz: q('.a-utrz'), cena: q('.a-cena'), rabat: q('.a-rabat'), prow: q('.a-prow'), pit: q('.a-pit'), cel: q('.a-cel'),
-};
-const A_DEF = { przeb: 0, pcc: true, eksm: false, rmode: 'm2', remont: 1500, rkwota: 40000, mies: 6, utrz: 10, cena: 'ofertowa', rabat: 5, prow: 2.5, pit: '1', cel: 15 };
-window.lkRF = window.lkRF || {};
-Object.values(A).forEach((x) => { x.addEventListener('input', () => window.lkDraw()); x.addEventListener('change', () => window.lkDraw()); });
+// Jeden kalkulator na całą stronę: wzory z modułu kalkulator/kalkulator.js (window.KalkulatorMieszkania).
+// Tu wybierasz tylko wariant, źródło ceny rynkowej i docelowy zwrot; szczegóły – w oknie kalkulatora mieszkania.
+const KM = window.KalkulatorMieszkania;
+const A = { wariant: q('.a-wariant'), cena: q('.a-cena'), cel: q('.a-cel') };
+const A_DEF = { wariant: 'bazowy', cena: 'ogloszenia', cel: 15 };
+const A_KEY = 'lk-zalozenia-v2';
+try { const z = JSON.parse(localStorage.getItem(A_KEY)); if (z) Object.entries(A_DEF).forEach(([k]) => { if (z[k] != null) A[k].value = z[k]; }); } catch (e) { /* brak zapisu */ }
+const zapiszA = () => { try { localStorage.setItem(A_KEY, JSON.stringify(Object.fromEntries(Object.entries(A).map(([k, x]) => [k, x.value])))); } catch (e) { /* tryb prywatny */ } };
+Object.values(A).forEach((x) => { x.addEventListener('input', () => { zapiszA(); window.lkDraw(); }); x.addEventListener('change', () => { zapiszA(); window.lkDraw(); }); });
 q('.a-reset').addEventListener('click', () => {
-  Object.entries(A_DEF).forEach(([k, v]) => { if (typeof v === 'boolean') A[k].checked = v; else A[k].value = v; });
-  Object.keys(window.lkRF).forEach((k) => delete window.lkRF[k]);
+  Object.entries(A_DEF).forEach(([k, v]) => { A[k].value = v; });
+  zapiszA();
   window.lkDraw();
 });
 const av = (x) => Math.max(0, Number(x.value) || 0);
 
 const SEG = [
   { key: 'zakup', name: 'Zakup', t: 'cena_wywolania' },
-  { key: 'oplaty', name: 'PCC i opłaty', t: 'pcc' },
+  { key: 'oplaty', name: 'Opłaty przy zakupie', t: 'pcc' },
   { key: 'remont', name: 'Remont', t: 'remont' },
   { key: 'utrzymanie', name: 'Utrzymanie', t: 'utrzymanie' },
   { key: 'sprzedaz_koszty', name: 'Koszty sprzedaży', t: 'prowizja' },
   { key: 'pit', name: 'PIT', t: 'pit' },
 ];
 
-function czescOf(r) { const [a, b] = String(r.udzial || '1/1').split('/').map(Number); return a && b ? a / b : 1; }
+// Cena rynkowa za m² wg wyboru w zakładce „Kalkulator”.
+function rynekM2Of(r) {
+  if (A.cena.value === 'transakcyjna') return r.rynek_transakcyjna_m2 || null;
+  if (A.cena.value === 'ofertowa') return r.rynek_ofertowa_m2 || null;
+  return r.og_mediana_m2 || r.rynek_ofertowa_m2 || null;
+}
+const opisRynku = (r) => {
+  const v = rynekM2Of(r);
+  if (!v) return 'brak ceny rynkowej';
+  if (A.cena.value === 'transakcyjna') return 'cena rynkowa: transakcje GUS, powiat (' + num(v) + ' zł/m²)';
+  if (A.cena.value === 'ogloszenia' && r.og_mediana_m2) return 'cena rynkowa: mediana ' + r.og_liczba + ' ogłosz. (' + num(v) + ' zł/m²)';
+  return 'cena rynkowa: ceny ofertowe w gminie (' + num(v) + ' zł/m²)';
+};
+// „Twój wariant” zapisany w oknie kalkulatora dla tego mieszkania (localStorage modułu).
+function twojWariant(id) {
+  try { const s = localStorage.getItem('kalkulator-mieszkania:' + id); return s ? JSON.parse(s) : null; } catch (e) { return null; }
+}
+const daneKalk = (r) => ({ id: r.id, cena: r.cena, metraz: r.m2, cenaRynkowaM2: rynekM2Of(r), rodzaj: rodz(r) });
 
-// Pełne rozliczenie kupna i odsprzedaży. zakupOverride – do szukania maksymalnej ceny.
+// Rozliczenie kupna, remontu i sprzedaży (wzory: KalkulatorMieszkania.compute). zakupOverride – do szukania maksymalnej ceny.
 function flip(r, st, zakupOverride) {
-  const czesc = czescOf(r);
-  const zakup = zakupOverride != null ? zakupOverride : Number(r.cena) * (1 + av(A.przeb) / 100);
-  const pcc = A.pcc.checked ? zakup * (st.pcc ?? 2) / 100 : 0;
-  const wpis = r.udzial ? Math.max(st.wpis_kw_min_udzial ?? 100, (st.wpis_kw ?? 200) * czesc) : (st.wpis_kw ?? 200);
-  const eksm = A.eksm.checked ? (st.oproznienie ?? 1500) : 0;
-  const wlasny = window.lkRF[r.id];
-  const remontCaly = wlasny != null ? wlasny : A.rmode.value === 'kwota' ? av(A.rkwota) : av(A.remont) * Number(r.m2);
-  const remont = remontCaly * czesc;
-  const utrzymanie = av(A.utrz) * Number(r.m2) * av(A.mies) * czesc;
-  const rynekM2 = A.cena.value === 'transakcyjna' ? r.rynek_transakcyjna_m2 : A.cena.value === 'ogloszenia' ? r.og_mediana_m2 : r.rynek_ofertowa_m2;
-  if (rynekM2 == null) return null;
-  const sprzedaz = rynekM2 * Number(r.m2) * czesc * (1 - av(A.rabat) / 100);
-  const prowizja = sprzedaz * av(A.prow) / 100 * (1 + (st.vat_prowizja ?? 23) / 100);
-  const swiad = st.swiadectwo ?? 700;
-  const sprzedaz_koszty = prowizja + swiad;
-  const dochod = sprzedaz - sprzedaz_koszty - (zakup + pcc + wpis) - remont;
-  const pit = A.pit.value === '1' ? Math.max(0, dochod) * (st.pit ?? 19) / 100 : 0;
-  const oplaty = pcc + wpis + eksm;
-  const zysk = sprzedaz - zakup - oplaty - remont - utrzymanie - sprzedaz_koszty - pit;
-  const wklad = zakup + oplaty + remont + utrzymanie;
-  return { r, wlasny: wlasny != null, remontCaly, czesc, zakup, pcc, wpis, eksm, oplaty, remont, utrzymanie, sprzedaz, prowizja, swiad, sprzedaz_koszty, pit, zysk, wklad, roi: wklad ? zysk / wklad : null, rynekM2 };
+  if (!KM || !r.cena || !r.m2) return null;
+  const rynekM2 = rynekM2Of(r);
+  const wlasny = twojWariant(r.id);
+  if (!rynekM2 && !wlasny) return null;
+  const p = { ...(wlasny || KM.preset(A.wariant.value, daneKalk(r))) };
+  if (zakupOverride != null) p.cenaZakupu = zakupOverride;
+  const x = KM.compute(p);
+  const zakup = Number(p.cenaZakupu) || 0;
+  return {
+    r, wlasny: !!wlasny, p, x, zakup, oplaty: x.zakup - zakup, remont: x.remont, utrzymanie: x.utrzymanie,
+    sprzedaz_koszty: x.kosztySprzedazy, pit: x.pit, zysk: x.zyskNetto, sprzedaz: x.cenaSprzedazy,
+    wklad: x.gotowka, roi: x.roi, rynekM2, sprzedazM2: Number(p.cenaSprzedazyM2) || 0,
+  };
 }
 
 // Najwyższa cena zakupu, przy której zwrot >= cel.
@@ -227,6 +238,14 @@ function maksCena(r, st) {
   for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (ok(m)) lo = m; else hi = m; }
   return Math.floor(lo / 100) * 100;
 }
+// Okno kalkulatora mieszkania (flip, najem, wzrost wartości, Twój wariant).
+function otworzKalkulator(r) {
+  if (!KM || !r || !r.cena || !r.m2) return;
+  KM.open({ ...daneKalk(r), cenaRynkowaM2: rynekM2Of(r) || undefined, tytul: label2(r) + ' – ' + num(r.m2, 2) + ' m²', link: r.url,
+    opis: (rynekM2Of(r) ? opisRynku(r) : 'brak ceny rynkowej – przyjęto 6 500 zł/m², wpisz własną') + (isKom(r) ? ' · licytacja: bez PCC i notariusza' : '') });
+}
+// Po zamknięciu okna kalkulatora przelicz oceny (mogły się zmienić założenia „Twojego wariantu”).
+document.addEventListener('close', (e) => { if (e.target.classList && e.target.classList.contains('kalk')) window.lkDraw(); }, true);
 
 function oszacowanie(r) {
   if (r.licytacja === 'pierwsza') return Number(r.cena) / 0.75;
@@ -244,7 +263,7 @@ function flagi(r, f) {
   if (u.includes('węgl') || u.includes('do wymiany')) out.push({ lvl: 'yellow', t: 'remont', txt: 'Instalacje do wymiany (np. piec węglowy)', s: 'Doliczyć wyższy koszt remontu.' });
   if (f && f.zysk < 0) out.push({ lvl: 'red', t: 'zysk', txt: 'Przy obecnych założeniach strata ' + zl(Math.abs(f.zysk)), s: 'Zmień założenia w kalkulatorze albo odpuść ofertę.' });
   else if (f && f.roi < 0.1) out.push({ lvl: 'yellow', t: 'roi', txt: 'Niski zwrot: ' + pct(f.roi * 100), s: 'Mało miejsca na niespodzianki – droższy remont lub dłuższa sprzedaż zjedzą zysk.' });
-  if (!f) out.push({ lvl: 'yellow', t: 'cena_ofertowa', txt: 'Brak wybranej ceny rynkowej dla tej miejscowości', s: 'Nie da się policzyć zysku – zmień „Cenę sprzedaży” w kalkulatorze.' });
+  if (!f) out.push({ lvl: 'yellow', t: 'cena_ofertowa', txt: 'Brak wybranej ceny rynkowej dla tej miejscowości', s: 'Nie da się policzyć zysku – zmień „Cena rynkowa z” w zakładce Kalkulator albo wpisz cenę w kalkulatorze mieszkania.' });
   if (r.og_liczba != null && r.og_liczba < 3) out.push({ lvl: 'yellow', t: 'podobne', txt: r.og_liczba ? 'Tylko ' + r.og_liczba + ' ogłosz. sprzedaży w okolicy' : 'Brak aktualnych ogłoszeń sprzedaży w tej miejscowości', s: 'Rynek jest mały – sprzedaż może potrwać dłużej, a cena jest trudna do oszacowania.' });
   if (r.og_skad && r.og_skad !== r.miejscowosc) out.push({ lvl: 'info', t: 'podobne', txt: 'Porównanie z ogłoszeniami z: ' + r.og_skad, s: 'W ' + r.miejscowosc + ' nie ma ogłoszeń – to inny, zwykle droższy rynek niż wieś.' });
   const dl = dni(r.termin);
@@ -605,18 +624,12 @@ function drawDetail(D, r) {
   }
   if (rodz(r) === 'przetarg') link(google('przetarg mieszkanie ' + gdzie + ' BIP'), 'Szukaj w BIP ↗');
   if (rodz(r) === 'syndyk') { link('https://krz.ms.gov.pl/', 'Rejestr Zadłużonych (KRZ) ↗'); link(google('syndyk sprzedaż mieszkanie ' + gdzie + ' obwieszczenie'), 'Szukaj ogłoszenia syndyka ↗'); }
-  const calc = el('button', 'lk-link', 'Policz w kalkulatorze →'); calc.dataset.go = 'kalkulator'; calc.addEventListener('click', () => { window.lkWf = r.id; });
+  const calc = el('button', 'lk-link', 'Porównaj w zakładce Kalkulator →'); calc.dataset.go = 'kalkulator'; calc.addEventListener('click', () => { window.lkWf = r.id; });
   links.appendChild(calc);
-  // Kalkulator inwestycji (moduł kalkulator/kalkulator.js): flip, najem i wzrost wartości w 3 wariantach + Twój.
-  if (window.KalkulatorMieszkania && r.cena && r.m2) {
-    const rynekM2 = r.og_mediana_m2 || r.rynek_ofertowa_m2 || null;
-    const zrodloRynku = r.og_mediana_m2 ? 'cena rynkowa: mediana ' + r.og_liczba + ' ogłosz. (' + num(r.og_mediana_m2) + ' zł/m²)' : r.rynek_ofertowa_m2 ? 'cena rynkowa: RealAdvisor, gmina (' + num(r.rynek_ofertowa_m2) + ' zł/m²)' : 'brak ceny rynkowej – przyjęto 6 500 zł/m² (Oświęcim)';
-    const kb = el('button', 'lk-link', 'Kalkulator inwestycji: flip, najem →');
+  if (KM && r.cena && r.m2) {
+    const kb = el('button', 'lk-link', 'Kalkulator tego mieszkania: flip, najem →');
     kb.type = 'button';
-    kb.addEventListener('click', () => window.KalkulatorMieszkania.open({
-      id: r.id, tytul: label2(r) + ' – ' + num(r.m2, 2) + ' m²', link: r.url, cena: r.cena, metraz: r.m2,
-      cenaRynkowaM2: rynekM2, rodzaj: rodz(r), opis: zrodloRynku + (isKom(r) ? ' · licytacja: bez PCC i notariusza' : ''),
-    }));
+    kb.addEventListener('click', () => otworzKalkulator(r));
     links.appendChild(kb);
   }
   links.appendChild(backBtn());
@@ -788,7 +801,8 @@ function drawFlip(D, rows) {
   box.replaceChildren();
   const data = rows.map((r) => r.f).filter(Boolean).sort((a, b) => b.zysk - a.zysk);
   window.lkFlipData = data;
-  const short = (r) => r.miejscowosc + (r.udzial ? ' (udz. ' + r.udzial + ')' : '') + (window.lkRF[r.id] != null ? ' ✎' : '');
+  const d0 = (r) => r.f;
+  const short = (r) => r.miejscowosc + (d0(r) && d0(r).wlasny ? ' ✎' : '');
   if (!data.length) { box.appendChild(el('div', 'lk-empty', 'Brak ofert z ceną rynkową dla wybranych filtrów.')); }
   else {
     const W = box.clientWidth || 600, rowH = 36;
@@ -837,7 +851,7 @@ function drawFlip(D, rows) {
   mx.replaceChildren();
   const tbl = el('table', 'lk-table plain');
   const thead = el('thead'); const hr = el('tr');
-  [['Mieszkanie'], ['Cena wywołania', 'cena_wywolania', 'num'], ['Maks. cena', 'maks_cena', 'num'], ['Zapas', 'przebicie', 'num'], ['Zysk przy cenie wywołania', 'zysk', 'num lk-hide-narrow']].forEach(([n, t, c]) => { const th = el('th', c || null); if (t) th.appendChild(term(t, n)); else th.textContent = n; hr.appendChild(th); });
+  [['Mieszkanie'], ['Cena wywołania', 'cena_wywolania', 'num'], ['Maks. cena', 'maks_cena', 'num'], ['Zapas', 'przebicie', 'num'], ['Szac. zysk', 'zysk', 'num lk-hide-narrow']].forEach(([n, t, c]) => { const th = el('th', c || null); if (t) th.appendChild(term(t, n)); else th.textContent = n; hr.appendChild(th); });
   thead.appendChild(hr); tbl.appendChild(thead);
   const tb = el('tbody');
   data.forEach((d) => {
@@ -865,13 +879,10 @@ function drawWaterfall(D) {
   const box = q('.lk-wf'), sum = q('.lk-wf-sum');
   box.replaceChildren(); sum.replaceChildren();
   const d = (window.lkFlipData || []).find((x) => x.r.id === window.lkWf);
-  const rf = q('.a-rflat'), rn = q('.lk-rflat-note');
-  if (!d) { rf.value = ''; rn.textContent = ''; box.appendChild(el('div', 'lk-empty', 'Brak oferty do rozliczenia.')); return; }
+  const rn = q('.lk-wf-note');
+  if (!d) { rn.textContent = ''; box.appendChild(el('div', 'lk-empty', 'Brak oferty do rozliczenia.')); return; }
   q('.a-oferta').value = d.r.id;
-  if (rf !== document.activeElement) rf.value = d.wlasny ? Math.round(d.remontCaly) : '';
-  rf.placeholder = num(Math.round(d.remontCaly)) + ' (z ustawień)';
-  q('.a-rflat-clear').hidden = !d.wlasny;
-  rn.textContent = (d.wlasny ? 'Własna kwota remontu dla tego mieszkania. ' : 'Wpisz kwotę, żeby zastąpić ustawienie ogólne tylko dla tego mieszkania. ') + (d.r.udzial ? 'To udział ' + d.r.udzial + ', więc do rozliczenia wchodzi ' + zl(d.remont) + '.' : '');
+  rn.textContent = (d.wlasny ? 'To mieszkanie liczone jest Twoim wariantem zapisanym w kalkulatorze. ' : 'Liczone wariantem „' + A.wariant.value + '”. ') + opisRynku(d.r).replace(/^c/, 'C') + '.';
   const steps = [{ name: 'Ze sprzedaży', v: d.sprzedaz, type: 'total' }].concat(SEG.map((s, i) => ({ name: s.name, v: -d[s.key], type: 'cost', i }))).concat([{ name: d.zysk >= 0 ? 'Zysk' : 'Strata', v: d.zysk, type: 'end' }]);
   let run = 0;
   steps.forEach((s) => { if (s.type === 'total') { s.y0 = 0; s.y1 = s.v; run = s.v; } else if (s.type === 'cost') { s.y0 = run; s.y1 = run + s.v; run = s.y1; } else { s.y0 = 0; s.y1 = s.v; } });
@@ -894,23 +905,17 @@ function drawWaterfall(D) {
     .each(function (s) { const w = s.name.split(' '); const t = d3.select(this); (bw < 70 && w.length > 1 ? [w[0], w.slice(1).join(' ')] : [s.name]).forEach((ln, i) => t.append('tspan').attr('x', x(s.name) + bw / 2).attr('dy', i ? '1.2em' : 0).text(ln)); });
   const p = (t, k, v) => { const x = el('div'); const a = el('span', 'k'); a.appendChild(term(t, k)); x.append(a, el('span', 'v', v)); sum.appendChild(x); };
   p('wklad', 'Potrzebna gotówka', zl(d.wklad));
-  p('cena_ofertowa', 'Sprzedaż po', num(Math.round(d.rynekM2 * (1 - av(A.rabat) / 100))) + ' zł/m²');
-  p('pcc', 'PCC + wpis' + (d.eksm ? ' + opróżnienie' : ''), zl(d.oplaty));
-  p('prowizja', 'Prowizja z VAT + świadectwo', zl(d.sprzedaz_koszty));
+  p('cena_ofertowa', 'Sprzedaż po', num(Math.round(d.sprzedazM2)) + ' zł/m²');
+  p('remont', 'Remont z rezerwą', zl(d.remont));
+  p('pcc', isKom(d.r) ? 'Opłaty sądowe (KW)' : 'Notariusz, PCC, opłaty sądowe', zl(d.oplaty));
+  p('prowizja', 'Prowizja i inne koszty sprzedaży', zl(d.sprzedaz_koszty));
   p('pit', 'PIT', zl(d.pit));
   p('zysk', d.zysk >= 0 ? 'Zysk na czysto' : 'Strata', zl(Math.abs(d.zysk)) + ' (' + pct(d.roi * 100) + ')');
   const mx = maksCena(d.r, D.st);
   p('maks_cena', 'Maks. cena (cel ' + av(A.cel) + '%)', mx ? zl(mx) : 'nie opłaca się');
 }
 q('.a-oferta').addEventListener('change', () => { window.lkWf = q('.a-oferta').value; window.lkDraw(); });
-q('.a-rflat').addEventListener('input', () => {
-  const x = q('.a-rflat'), id = window.lkWf;
-  if (!id) return;
-  if (x.value === '' || isNaN(Number(x.value))) delete window.lkRF[id]; else window.lkRF[id] = Math.max(0, Number(x.value));
-  window.lkDraw();
-});
-q('.a-rflat').addEventListener('blur', () => window.lkDraw());
-q('.a-rflat-clear').addEventListener('click', () => { delete window.lkRF[window.lkWf]; q('.a-rflat').value = ''; window.lkDraw(); });
+q('.a-otworz').addEventListener('click', () => { const d = (window.lkFlipData || []).find((x) => x.r.id === window.lkWf); if (d) otworzKalkulator(d.r); });
 
 // ===== PORADNIK =====
 const gl = q('.lk-gloss'), glq = q('.lk-gloss-q');
@@ -929,9 +934,8 @@ cl.forEach((c) => c.addEventListener('change', () => { const n = cl.filter((x) =
 
 // ===== Główne rysowanie =====
 window.lkDraw = () => {
-  q('.a-remont-val').textContent = num(av(A.remont));
-  q('.a-rm2-wrap').hidden = A.rmode.value !== 'm2';
-  q('.a-rkw-wrap').hidden = A.rmode.value !== 'kwota';
+  const w = KM && KM.CONFIG.warianty[A.wariant.value];
+  if (w) q('.lk-wariant-opis').textContent = 'Wariant „' + w.etykieta.toLowerCase() + '”: kupujesz ' + (w.cenaZakupuMnoznik > 1 ? 'o ' + num((w.cenaZakupuMnoznik - 1) * 100, 1) + '% drożej niż cena wywołania' : 'po cenie wywołania') + ', remont ok. ' + num(Math.round((w.robociznaM2 + w.materialyM2) * (1 + w.rezerwaProc) / 100) * 100) + ' zł/m² (z rezerwą), ' + w.miesiace + ' mies. do sprzedaży, sprzedaż po ' + Math.round(w.sprzedazMnoznik * 100) + '% ceny rynkowej, prowizja ' + num(w.prowizjaProc * 100, 1) + '%. PIT 19% liczony jak przy sprzedaży przed upływem 5 lat.';
 
   if (DATA.status === 'ok') {
     const v = Object.fromEntries(DATA.podsumowanie.map((x) => [x.metryka, x.wartosc]));
