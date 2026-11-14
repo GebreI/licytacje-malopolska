@@ -107,7 +107,7 @@ const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) 
 const term = (key, txt) => { const s = el('span', 't', txt || (S[key] ? S[key][0] : key)); s.dataset.t = key; s.tabIndex = 0; return s; };
 const KOLORY = ['var(--s0)', 'var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)', 'var(--s7)'];
 const segColor = (i) => KOLORY[i % KOLORY.length];
-const label2 = (r) => r.miejscowosc + (r.lokalizacja ? ', ' + r.lokalizacja.replace(/\s*\(.*\)/, '') : '') + (r.udzial ? ' (udział ' + r.udzial + ')' : '');
+const label2 = (r) => r.miejscowosc + (r.lokalizacja ? ', ' + r.lokalizacja.replace(/\s*\(.*\)/, '') : '');
 
 // ===== Podpowiedzi (hover / dotknięcie) =====
 const tipEl = q('.lk-tipg');
@@ -258,7 +258,6 @@ function oszacowanie(r) {
 function flagi(r, f) {
   const out = [];
   const u = (r.uwagi || '').toLowerCase();
-  if (r.typ === 'Udział') out.push(r.udzial ? { lvl: 'red', t: 'udzial', txt: 'Kupujesz tylko udział ' + r.udzial + ' w mieszkaniu', s: 'Nie zamieszkasz ani nie sprzedasz go swobodnie bez zgody współwłaściciela.' } : { lvl: 'red', t: 'udzial', txt: 'Udział we współwłasności zamiast odrębnego lokalu', s: 'Bez osobnej księgi wieczystej – trudniej o kredyt dla kupca i o odsprzedaż.' });
   if (u.includes('służebno')) out.push({ lvl: 'red', t: 'sluzebnosc', txt: 'Lokal obciążony służebnością mieszkania', s: 'Ktoś może mieć prawo mieszkać tu dożywotnio – wartość dla kupującego mocno spada.' });
   if (u.includes('dojazd') || u.includes('dostęp')) out.push({ lvl: 'red', t: 'dojazd', txt: 'Brak prawnie zapewnionego dojazdu', s: 'Utrudnia kredyt Twojemu przyszłemu kupcowi i obniża cenę sprzedaży.' });
   if (u.includes('węgl') || u.includes('do wymiany')) out.push({ lvl: 'yellow', t: 'remont', txt: 'Instalacje do wymiany (np. piec węglowy)', s: 'Doliczyć wyższy koszt remontu.' });
@@ -287,7 +286,7 @@ function flagi(r, f) {
   if (r.licytacja === 'druga') out.push({ lvl: 'info', t: 'druga', txt: 'Druga licytacja – niższa cena wywołania', s: 'Na pierwszej nie było chętnych. Sprawdź dlaczego.' });
   if (r.tryb === 'stacjonarna') out.push({ lvl: 'info', t: 'stacjonarna', txt: 'Licytacja stacjonarna w sądzie', s: 'Trzeba być osobiście lub wysłać pełnomocnika.' });
   if (r.tryb === 'e-licytacja') out.push({ lvl: 'info', t: 'elicytacja', txt: 'E-licytacja przez internet', s: 'Konto na licytacje.komornik.pl (Portal Obwieszczeń i Licytacji) załóż z wyprzedzeniem.' });
-  if (f && f.roi >= 0.1 && r.typ !== 'Udział') out.push({ lvl: 'green', t: 'roi', txt: 'Szacowany zwrot ' + pct(f.roi * 100), s: 'Przy obecnych założeniach z kalkulatora.' });
+  if (f && f.roi >= 0.1) out.push({ lvl: 'green', t: 'roi', txt: 'Szacowany zwrot ' + pct(f.roi * 100), s: 'Przy obecnych założeniach z kalkulatora.' });
   return out;
 }
 function ocena(fl) {
@@ -478,7 +477,6 @@ function drawOferty(D, rows) {
     tags.appendChild(badge(r.oc));
     if (isNew(r)) { const t = el('span', 'lk-tag new', 'nowa'); tags.appendChild(t); }
     if (!isKom(r)) tags.appendChild(el('span', 'lk-tag', RODZ_K[rodz(r)]));
-    if (r.typ === 'Udział') { const t = el('span', 'lk-tag bad', r.udzial ? 'udział ' + r.udzial : 'udział'); t.dataset.t = 'udzial'; tags.appendChild(t); }
     if (mj.odrz) tags.appendChild(el('span', 'lk-tag bad', 'odrzucona'));
     a.appendChild(tags);
     if ((mj.kom || '').trim()) { const k = mj.kom.trim(); a.appendChild(el('span', 'small lk-kom', '✎ ' + (k.length > 70 ? k.slice(0, 70) + '…' : k))); }
@@ -678,14 +676,14 @@ function drawLegend(box, items) {
   items.forEach(([n, c, line]) => { const it = el('span', 'lk-leg'); const sw = el('i', line ? 'line' : null); sw.style.background = c; it.append(sw, document.createTextNode(n)); box.appendChild(it); });
 }
 function drawRynek(D, rows) {
-  drawLegend(q('.lk-mkt-legend'), [['Oferta (za całość)', KOLORY[0]], ['Udział (przeliczony)', 'var(--cds-chart-muted)'], ['Cena ofertowa', 'var(--cds-chart-reference)', 1], ['Cena transakcyjna', 'var(--color-warn)', 1], ['Podobne ogłoszenia', 'var(--color-ok)', 1]]);
+  drawLegend(q('.lk-mkt-legend'), [['Oferta', KOLORY[0]], ['Cena ofertowa', 'var(--cds-chart-reference)', 1], ['Cena transakcyjna', 'var(--color-warn)', 1], ['Podobne ogłoszenia', 'var(--color-ok)', 1]]);
   const box = q('.lk-chart');
   box.replaceChildren();
   const data = rows.filter((r) => r.cena_m2_calosc != null).sort((a, b) => (a.vs_ofertowa_pct ?? 999) - (b.vs_ofertowa_pct ?? 999));
   if (!data.length) { box.appendChild(el('div', 'lk-empty', 'Brak ofert dla wybranych filtrów.')); }
   else {
     const W = box.clientWidth || 600, rowH = 34;
-    const label = (r) => r.miejscowosc + (r.udzial ? ' (udz. ' + r.udzial + ')' : '');
+    const label = (r) => r.miejscowosc;
     const svg = d3.select(box).append('svg').attr('width', '100%');
     const meas = svg.append('g'); let lw = 0;
     data.forEach((r) => { lw = Math.max(lw, meas.append('text').attr('font-size', 12).text(label(r)).node().getComputedTextLength()); });
@@ -702,7 +700,7 @@ function drawRynek(D, rows) {
     const tip = el('div', 'lk-tip'); tip.hidden = true; box.appendChild(tip);
     const g = svg.append('g').selectAll('g').data(data).join('g');
     g.append('text').attr('x', m.l - 8).attr('y', (d) => y(d.id) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(label);
-    g.append('rect').attr('x', m.l).attr('y', (d) => y(d.id)).attr('height', y.bandwidth()).attr('rx', 4).attr('width', (d) => Math.max(2, x(d.cena_m2_calosc) - m.l)).attr('fill', (d) => d.typ === 'Udział' ? 'var(--cds-chart-muted)' : KOLORY[0]);
+    g.append('rect').attr('x', m.l).attr('y', (d) => y(d.id)).attr('height', y.bandwidth()).attr('rx', 4).attr('width', (d) => Math.max(2, x(d.cena_m2_calosc) - m.l)).attr('fill', KOLORY[0]);
     const tick = (key, color) => g.filter((d) => d[key] != null).append('line').attr('x1', (d) => x(d[key])).attr('x2', (d) => x(d[key])).attr('y1', (d) => y(d.id) - 4).attr('y2', (d) => y(d.id) + y.bandwidth() + 4).attr('stroke', color).attr('stroke-width', 3).attr('stroke-linecap', 'round');
     tick('rynek_ofertowa_m2', 'var(--cds-chart-reference)');
     tick('rynek_transakcyjna_m2', 'var(--color-warn)');
