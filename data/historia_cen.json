@@ -908,5 +908,75 @@
   "rok": 2025,
   "mediana_m2": 6208,
   "transakcje": 388
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2016,
+  "mediana_m2": 2500,
+  "transakcje": 63
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2017,
+  "mediana_m2": 2699,
+  "transakcje": 62
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2018,
+  "mediana_m2": 2814,
+  "transakcje": 52
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2019,
+  "mediana_m2": 3708,
+  "transakcje": 102
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2020,
+  "mediana_m2": 3651,
+  "transakcje": 64
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2021,
+  "mediana_m2": 3867,
+  "transakcje": 51
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2022,
+  "mediana_m2": 4514,
+  "transakcje": 74
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2023,
+  "mediana_m2": 5236,
+  "transakcje": 66
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2024,
+  "mediana_m2": 6094,
+  "transakcje": 123
+ },
+ {
+  "powiat": "gorlicki",
+  "obszar": "powiat gorlicki",
+  "rok": 2025,
+  "mediana_m2": 5228,
+  "transakcje": 98
  }
 ]
